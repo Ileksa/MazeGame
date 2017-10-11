@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MazeServer", "MazeServer\MazeServer.vcxproj", "{90BD3304-A9E7-4622-92CE-AE8E144D1D45}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MazeClient", "MazeClient\MazeClient.vcxproj", "{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{90BD3304-A9E7-4622-92CE-AE8E144D1D45}.Release|x64.Build.0 = Release|x64
 		{90BD3304-A9E7-4622-92CE-AE8E144D1D45}.Release|x86.ActiveCfg = Release|Win32
 		{90BD3304-A9E7-4622-92CE-AE8E144D1D45}.Release|x86.Build.0 = Release|Win32
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Debug|x64.ActiveCfg = Debug|x64
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Debug|x64.Build.0 = Debug|x64
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Debug|x86.ActiveCfg = Debug|Win32
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Debug|x86.Build.0 = Debug|Win32
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Release|x64.ActiveCfg = Release|x64
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Release|x64.Build.0 = Release|x64
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Release|x86.ActiveCfg = Release|Win32
+		{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

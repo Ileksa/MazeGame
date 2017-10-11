@@ -1,21 +1,28 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#include "common_constants.h"
 #include <list>
 #include <vector>
+#include <iostream>
+#include <io.h>
+#include <fcntl.h>
 using namespace std;
 
 //Представляет игрока.
 class player
 {
-	//уникальный идентификатор игрока на сервере.
+	//уникальный идентификатор, назначается уже после создания экземпляра класса
 	int uid;
+	//сокет, на который отправляются уведомления во время игры
+	//SOCKET* game_socket;
+	char* name;
 public:
-	player(int _uid);
+	player(char* _name);
 	~player();
-
-	int get_uid();
-	void set_uid(int _uid);
-
 	
+	char* get_name();
+	void set_uid(int _uid);
+	int get_uid();
 };
 
 //Представляет один узел карты - одну комнату.
@@ -28,10 +35,12 @@ class node {
 	list<player*> players;
 
 public:
-	node(int _id, int _up, int _down, int _left, int _right, 
-		int _up_left, int _up_right, int _down_left, int _down_right);
+	//если узла нет, нужно установить -1
+	node(int _id, int _up = -1, int _down = -1, int _left = -1, int _right = -1,
+		int _up_left = -1, int _up_right = -1, int _down_left = -1, int _down_right = -1);
 	~node();
 
+	//все методы возвращают -1, если узла нет
 	int get_id();
 	int get_up();
 	int get_down();
@@ -46,6 +55,8 @@ public:
 	void add_player(player* _player);
 	//удаляет игрока из заданного узла по его идентификатору и возвращает на него ссылку
 	player* remove_player(int uid);
+	//проверяет, есть ли игроки в локации и возвращает true, если есть
+	bool contains_players();
 };
 
 class game_map
@@ -54,16 +65,27 @@ class game_map
 	int id;
 	//список узлов
 	vector<node*> nodes;
+	//число узлов на одном уровне карты
+	int level_size;
 
 public:
-	game_map(int _id);
+	game_map(int _id, int _level_size);
 	~game_map();
 
 	int get_id();
+	int get_level_size();
 	//добавляет узел в карту
 	void add_node(node* _node);
-	//получить узел по индексу
+	//получить узел по индексу, нумерация начинается с нуля
 	node* get_node(int index);
 	//получить число узлов в карте
-	int node_count();
+	int nodes_count();
+	
+	//инициализировать карту по ее номеру; возможно, временный метод
+	void initialize(int id);
+
+	virtual void output_map();
+	//отображает один из пяти рядов комнаты (0-4); ширина - 11 ячеек
+protected:
+	virtual void output_node_row(node* _node, node* _left, node* _right, int row);
 };

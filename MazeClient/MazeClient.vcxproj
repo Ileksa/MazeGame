@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{90BD3304-A9E7-4622-92CE-AE8E144D1D45}</ProjectGuid>
-    <RootNamespace>MazeServer</RootNamespace>
+    <ProjectGuid>{52E0A9E8-D88F-422C-ACDE-7F202308FCFB}</ProjectGuid>
+    <RootNamespace>MazeClient</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -110,15 +110,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="game_map.cpp" />
-    <ClCompile Include="server_communications.cpp" />
-    <ClCompile Include="server_communications_processing_commands.cpp" />
     <ClCompile Include="Source.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="common_constants.h" />
-    <ClInclude Include="game_map.h" />
-    <ClInclude Include="server_communications.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
