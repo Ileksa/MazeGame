@@ -19,7 +19,7 @@ class lsm_server
 	struct client_communication_data
 	{
 		lsm_server* initiator;
-		SOCKET* socket;
+		SOCKET socket;
 		sockaddr_in tcpaddr;
 	};
 

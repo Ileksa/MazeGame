@@ -64,18 +64,14 @@ void lsm_server::accepting_clients()
 		inet_ntop(AF_INET, &(tcpaddr.sin_addr), ip, 100);
 		wcout << L"Connection accept with client " << ip << endl;
 
-		SOCKET* client_socket = static_cast<SOCKET*>(malloc(sizeof(SOCKET)));
-		memcpy(client_socket, &sockfd, sizeof(sockfd));
-
 		client_communication_data* data = static_cast<client_communication_data*>(malloc(sizeof(client_communication_data)));
 		data->initiator = this;
-		data->socket = client_socket;
+		data->socket = sockfd;
 		data->tcpaddr = tcpaddr;
 
 		if (CreateThread(NULL, 0, client_communication_wraper, data, 0, NULL) == NULL) {
 			send_error(sockfd, "ER 401 Internal server error. Connection will be closed.\r\n");
 			closesocket(sockfd);
-			free(client_socket);
 		}
 	}
 
@@ -91,8 +87,8 @@ DWORD WINAPI lsm_server::client_communication_wraper(LPVOID data)
 DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 {
 	client_communication_data* data = static_cast<client_communication_data*>(_data);
-	SOCKET* s = static_cast<SOCKET*>(data->socket);
-	send_greetings_message(*s);
+	SOCKET s = data->socket;
+	send_greetings_message(s);
 
 	int state = STATE_WAIT_HELO;
 	char message[MSG_SIZE];
@@ -102,7 +98,7 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 
 	while (true) {
 		memset(message, '\0', MSG_SIZE);
-		result = get_command(*s, message, MSG_SIZE);
+		result = get_command(s, message, MSG_SIZE);
 
 		wcout << L"[DEBUG] Get a command: " << message << endl;
 
@@ -110,7 +106,7 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 			goto end;
 
 		if (result <= 0) {
-			send_error(*s, "ER 500 Syntax error, command isn't recognized.\r\n");
+			send_error(s, "ER 500 Syntax error, command isn't recognized.\r\n");
 			continue;
 		}
 
@@ -119,42 +115,42 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 		case STATE_WAIT_HELO:
 			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0)
 			{
-				int res = process_quit_message(*s, message, result, &state, nullptr);
+				int res = process_quit_message(s, message, result, &state, nullptr);
 				if (res >= 0)
 					goto end;
 			}
 			else if (strncmp(message, "HELO ", COMMAND_LEN + 1) == 0)
-				pl = process_helo_message(*s, message, result, &state);
+				pl = process_helo_message(s, message, result, &state);
 			else
-				send_error(*s, "ER 580 Invalid command. Expected HELO username.\r\n");
+				send_error(s, "ER 580 Invalid command. Expected HELO username.\r\n");
 			break;
 		case STATE_WORKING:
 			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
-				int res = process_quit_message(*s, message, result, &state, pl);
+				int res = process_quit_message(s, message, result, &state, pl);
 				if (res >= 0)
 					goto end;
 			}
 			else if (strncmp(message, "STAR 0", COMMAND_LEN + 1) == 0) {
-				game = process_star_message(*s, message, result, &state, pl);
+				game = process_star_message(s, message, result, &state, pl);
 			}
 			else
-				send_error(*s, "ER 581 Invalid command.\r\n");
+				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		case STATE_IN_GAME:
 			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
 				if (game != nullptr)
 					game->remove_player(pl);
 
-				int res = process_quit_message(*s, message, result, &state, pl);
+				int res = process_quit_message(s, message, result, &state, pl);
 				if (res >= 0) {
 					goto end;
 				}
 			}
 			else
-				send_error(*s, "ER 581 Invalid command.\r\n");
+				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		default:
-			send_error(*s, "ER 401 Internal server error. Connection will be closed.\r\n");
+			send_error(s, "ER 401 Internal server error. Connection will be closed.\r\n");
 			goto end;
 		}
 
@@ -167,8 +163,7 @@ end:
 	//	//delete pl;
 	//}
 	wcout << L"[DEBUG] before close socket" << endl;
-	closesocket(*s);
-	free(s);
+	closesocket(s);
 	wcout << L"Connection is closed." << endl;
 	return 0;
 }
