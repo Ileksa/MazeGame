@@ -1,6 +1,6 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
+//#include <iostream>
 #include <io.h>
 #include <cmath>
 #include <fcntl.h>
@@ -25,13 +25,21 @@ class lsm_server
 
 	//слушающий сокет - ожидающий подключений
 	SOCKET socket_listener;
-	//игроки без игры
+	//все игроки сервера
 	player** players;
 	int players_count;
+
+	//все игры сервера
+	game_map** games;
+	int games_count;
 
 	//добавляет игрока в таблицу игроков и возвращает его uid  в случае удачи, если неуспешно - -1
 	int add_player(player* pl);
 	void remove_player(player* pl);
+	
+	//метод, инициализирующий карту по умолчанию
+	game_map* initialize_default_game();
+
 public:
 	lsm_server(int port);
 	~lsm_server();
@@ -59,4 +67,6 @@ public:
 	player* process_helo_message(SOCKET s, char* msg, int size, int* server_state);
 	//обрабатывает команду QUIT и возвращает -1, если не удалось отсоединиться
 	int process_quit_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
+	//обрабатывает команду STAR и возвращает game_map в случае успеха, иначе - nullptr
+	game_map* process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
 };

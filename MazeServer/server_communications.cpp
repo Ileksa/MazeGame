@@ -26,11 +26,21 @@ lsm_server::lsm_server(int port)
 	players = new player*[players_count];
 	for (int i = 0; i < PLAYERS_COUNT; i++)
 		players[i] = nullptr;
+
+	games_count = GAMES_COUNT;
+	games = new game_map*[games_count];
+	for (int i = 0; i < GAMES_COUNT; i++)
+		games[i] = nullptr;
+
+	games[0] = initialize_default_game();
 }
 
 
 lsm_server::~lsm_server()
 {
+	delete games[0];
+	delete[] games;
+
 	delete[] players;
 	closesocket(socket_listener);
 }
@@ -87,7 +97,8 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 	int state = STATE_WAIT_HELO;
 	char message[MSG_SIZE];
 	int result;
-	player* pl;
+	player* pl = nullptr;
+	game_map* game = nullptr;
 
 	while (true) {
 		memset(message, '\0', MSG_SIZE);
@@ -97,7 +108,6 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 
 		if (result == -2)
 			goto end;
-		
 
 		if (result <= 0) {
 			send_error(*s, "ER 500 Syntax error, command isn't recognized.\r\n");
@@ -107,21 +117,41 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 		switch (state)
 		{
 		case STATE_WAIT_HELO:
-			if (strncmp(message, "QUIT", COMMAND_LEN) == 0)
+			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0)
 			{
-				if (process_quit_message(*s, message, result, &state, nullptr) == 0)
+				int res = process_quit_message(*s, message, result, &state, nullptr);
+				if (res >= 0)
 					goto end;
-			} else if (strncmp(message, "HELO ", COMMAND_LEN + 1) == 0)
+			}
+			else if (strncmp(message, "HELO ", COMMAND_LEN + 1) == 0)
 				pl = process_helo_message(*s, message, result, &state);
-			else 
+			else
 				send_error(*s, "ER 580 Invalid command. Expected HELO username.\r\n");
 			break;
 		case STATE_WORKING:
-			if (strncmp(message, "QUIT", COMMAND_LEN) == 0)
-			{
-				if (process_quit_message(*s, message, result, &state, nullptr) == 0)
+			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
+				int res = process_quit_message(*s, message, result, &state, pl);
+				if (res >= 0)
 					goto end;
 			}
+			else if (strncmp(message, "STAR 0", COMMAND_LEN + 1) == 0) {
+				game = process_star_message(*s, message, result, &state, pl);
+			}
+			else
+				send_error(*s, "ER 581 Invalid command.\r\n");
+			break;
+		case STATE_IN_GAME:
+			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
+				if (game != nullptr)
+					game->remove_player(pl);
+
+				int res = process_quit_message(*s, message, result, &state, pl);
+				if (res >= 0) {
+					goto end;
+				}
+			}
+			else
+				send_error(*s, "ER 581 Invalid command.\r\n");
 			break;
 		default:
 			send_error(*s, "ER 401 Internal server error. Connection will be closed.\r\n");
@@ -130,6 +160,13 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 
 	}
 end:
+
+
+	//if (pl != nullptr)	{
+	//	players[pl->get_uid()] = nullptr;
+	//	//delete pl;
+	//}
+	wcout << L"[DEBUG] before close socket" << endl;
 	closesocket(*s);
 	free(s);
 	wcout << L"Connection is closed." << endl;
@@ -201,6 +238,7 @@ int lsm_server::add_player(player* pl)
 		if (players[i] == nullptr)
 		{
 			players[i] = pl;
+			pl->set_uid(i);
 			return i;
 		}
 	return -1;
@@ -211,4 +249,24 @@ void lsm_server::remove_player(player* pl)
 	int uid = pl->get_uid();
 	if (uid != -1)
 		players[uid] = nullptr;
+}
+
+game_map* lsm_server::initialize_default_game()
+{
+	game_map* game = new game_map(3);
+
+	game->add_node(new node(0, -1, 3, -1, -1, -1, -1, -1, 4));
+	game->add_node(new node(1, -1, 4, -1, 2));
+	game->add_node(new node(2, -1, 5, 1));
+	game->add_node(new node(3, 0, 6));
+	game->add_node(new node(4, 1, -1, -1, -1, 0, -1, -1, 8));
+	game->add_node(new node(5, 2, 8));
+	game->add_node(new node(6, 3, 9, -1, 7));
+	game->add_node(new node(7, -1, -1, 6, 8, -1, -1, 9, 11));
+	game->add_node(new node(8, 5, 11, 7, -1, 4));
+	game->add_node(new node(9, 6, -1, -1, 10, -1, 7));
+	game->add_node(new node(10, -1, -1, 9, 11));
+	game->add_node(new node(11, 8, -1, 10, -1, 7));
+
+	return game;
 }

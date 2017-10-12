@@ -6,6 +6,8 @@
 #define COMMAND_LEN 4 
 #define NICKNAME_LEN 20
 #define PLAYERS_COUNT 10000 //нулевой id не используется, от 1 до 9999 включительно
+#define STANDARD_PLAYERS_COUNT_ON_MAP 8
+#define GAMES_COUNT 1000
 
 //состояния сервера
 #define STATE_WAIT_HELO 0

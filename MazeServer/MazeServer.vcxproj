@@ -111,6 +111,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="game_map.cpp" />
+    <ClCompile Include="node.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="server_communications.cpp" />
     <ClCompile Include="server_communications_processing_commands.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -118,6 +120,8 @@
   <ItemGroup>
     <ClInclude Include="common_constants.h" />
     <ClInclude Include="game_map.h" />
+    <ClInclude Include="node.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="server_communications.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

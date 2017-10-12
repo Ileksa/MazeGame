@@ -1,0 +1,31 @@
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#include "common_constants.h"
+#include <list>
+#include <vector>
+#include <iostream>
+#include <io.h>
+#include <fcntl.h>
+#include <winsock2.h>
+using namespace std;
+
+//ѕредставл€ет игрока.
+class player
+{
+	//уникальный идентификатор, назначаетс€ уже после создани€ экземпл€ра класса
+	int uid;
+	//сокет, на который отправл€ютс€ уведомлени€ во врем€ игры
+	//SOCKET* socket_notifications;
+	char* name;
+public:
+	player(char* _name);
+	~player();
+
+	char* get_name();
+	void set_uid(int _uid);
+	int get_uid();
+
+	//установить или получить сокет дл€ уведомлений
+	//void set_socket_notifications(SOCKET* s);
+	//SOCKET* get_socket_notifications();
+};
