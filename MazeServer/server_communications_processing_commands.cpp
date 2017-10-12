@@ -80,16 +80,24 @@ game* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* serve
 	count = game->get_players_count();
 	sprintf(buf, "PLS: %d\r\n", count);
 	send_message(s, buf, strlen(buf));
+
 	if (count > 0) {
-		game->reset_players_iterator();
+		int i = 0;
+		for(vector<player*>::iterator it = game->get_players_iterator_begin(); 
+			it !=  game->get_players_iterator_end(); ++it)
+		{
+			sprintf(buf, "%d %s %d %d\r\n", (*it)->get_uid(), (*it)->get_name(), 1, game->get_player_node(*it)->get_id());
+			send_message(s, buf, strlen(buf));
+
+		}
+
+		/*game->reset_players_iterator();
 		player* pl = game->current_player();
-		sprintf(buf, "%d %s %d %d\r\n", pl->get_uid(), pl->get_name(), 1, game->current_node()->get_id());
 		send_message(s, buf, strlen(buf));
 		while (game->move_next()) 		{
 			pl = game->current_player();
 			sprintf(buf, "%d %s %d %d\r\n", pl->get_uid(), pl->get_name(), 1, game->current_node()->get_id());
-			send_message(s, buf, strlen(buf));
-		}
+		}*/
 	}
 
 	*server_state = STATE_IN_GAME;

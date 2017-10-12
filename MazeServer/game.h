@@ -19,7 +19,9 @@ class game
 	vector<node*> nodes;
 	//число узлов на одном уровне карты
 	int level_size;
-	int players_count;
+
+	//список всех игроков
+	vector<player*> players;
 	int max_players_count;
 
 public:
@@ -37,28 +39,22 @@ public:
 
 	//получить число игроков на карте
 	int get_players_count();
+	//получить игрока по индексу
+	vector<player*>::iterator get_players_iterator_begin();
+	vector<player*>::iterator get_players_iterator_end();
+	//получить узел, в котором находится игрок (возвращет nullptr, если не удалось)
+	node* get_player_node(player* pl);
+	node* get_player_node(int uid);
+
 	//добавить игрока в игру, в случа неуспеха возвращается -1
 	int add_player(player* pl);
 	//удаляет игрока из игры
 	int remove_player(player* pl);
+	int remove_player(int uid);
 
 	virtual void output_map();
 	//отображает один из пяти рядов комнаты (0-4); ширина - 11 ячеек
 protected:
 	virtual void output_node_row(node* _node, node* _left, node* _right, int row);
-
-
-	//перебор игроков на карте
-protected:
-	int index_in_node = -1;
-	int index_node = -1;
-public:
-	//возвращает игрока
-	player* current_player();
-	node* current_node();
-	//возвращает true, если удалось успешно передвинуться
-	bool move_next();
-	//функция устанавливает указатель на первого игрока; если игроков вообще нет, возвращает false
-	bool reset_players_iterator();
 
 };

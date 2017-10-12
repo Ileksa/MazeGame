@@ -4,7 +4,6 @@
 game::game(int _level_size) {
 	//id = id;
 	level_size = _level_size;
-	players_count = 0;
 	max_players_count = STANDARD_PLAYERS_COUNT_ON_MAP;
 }
 game::~game() {}
@@ -194,83 +193,64 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row)
 
 //получить число игроков на карте
 int game::get_players_count() {
-	return players_count;
+	return players.size();
+}
+
+vector<player*>::iterator game::get_players_iterator_begin(){
+	return players.begin();
+}
+vector<player*>::iterator game::get_players_iterator_end() {
+	return players.end();
 }
 
 //добавить игрока в игру, в случа неуспеха возвращается -1, иначе - 0
 int game::add_player(player* pl)
 {
-	if (players_count >= max_players_count)
+	if (players.size() >= max_players_count)
 		return -1;
 
-	players_count++;
-	get_node(0)->add_player(pl);
+	players.push_back(pl);
+
+	//TODO: добавить разные точки респауна игроков
+	get_node(0)->add_player(pl->get_uid());
 	return 0;
 }
 
 int game::remove_player(player* pl)
 {
-	reset_players_iterator();
-	player* p = current_player();
-	while (p->get_uid() != pl->get_uid() && move_next()) {
-		p = current_player();
-	}
-	
-	if (p->get_uid() == pl->get_uid())
-	{
-		get_node(index_node)->remove_player(p->get_uid());
-
-		players_count--;
-		return 0;
-	}
-	return -1;
+	int uid = pl->get_uid();
+	return remove_player(uid);
 }
 
-//
-//protected:
-//	int index_in_node = -1;
-//	int index_node = -1;
-//public:
-//возвращает игро
-player* game::current_player()
+int game::remove_player(int uid)
 {
-	return get_node(index_node)->get_player(index_in_node);
-}
-
-node* game::current_node() {
-	return get_node(index_node);
-}
-//возвращает true, если удалось успешно передвинуться
-bool game::move_next()
-{
-	index_in_node++;
-	if (index_in_node == get_node(index_node)->get_players_count())
-	{
-		index_node++;
-		index_in_node = 0;
-	}
-	else
-		return true;
-
-	for (; index_node < get_nodes_count(); index_node++)
-		if (get_node(index_node)->contains_players())
+	for (int i = 0; i < get_nodes_count(); i++)
+		if (nodes[i]->contains_player(uid))
+		{
+			nodes[i]->remove_player(uid);
 			break;
+		}
 
-	if (index_node == get_nodes_count())
-		return false;
+	int index = -1;
+	for (int i = 0; i < players.size(); i++)
+		if (players[i]->get_uid() == uid)
+			index = i;
+		
 
-	return true;
+	if (index == -1)
+		return -1;
 
+	players.erase(players.begin() + index);
+	return 0;
 }
-//функция устанавливает указатель на первого игрока; если игроков вообще нет, возвращает false
-bool game::reset_players_iterator()
-{
-	index_in_node = 0;
-	index_node = 0;
-	while (index_node < get_nodes_count() && !get_node(index_node)->contains_players())
-		index_node++;
-	
-	if (index_node == get_nodes_count())
-		return false;
-	return true;
+
+
+node* game::get_player_node(player* pl) {
+	return get_player_node(pl->get_uid());
+}
+node* game::get_player_node(int uid) {
+	for (int i = 0; i < get_nodes_count(); i++)
+		if (nodes[i]->contains_player(uid))
+			return nodes[i];
+	return nullptr;
 }

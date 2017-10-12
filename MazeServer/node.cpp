@@ -13,44 +13,28 @@ node::node(int _id, int _up, int _down, int _left, int _right,
 }
 node::~node() {}
 
-void node::add_player(player* _player) {
-	if (_player != nullptr)
-		players.push_back(_player);
+void node::add_player(int uid) {
+	players.push_back(uid);
 }
 
-player* node::remove_player(int uid) {
-	player* pl = nullptr;
-
-	for (list<player*>::iterator it = players.begin(); it != players.end(); ++it)
-		if ((*it)->get_uid() == uid) {
-			pl = *it;
-			break;
-		}
-	players.remove(pl);
-	return pl;
+void node::remove_player(int uid) {
+	players.remove(uid);
 }
 
 bool node::contains_players() {
 	return players.size() > 0;
 }
 
-int node::get_players_count() {
-	return players.size();
+bool node::contains_player(int uid) {
+	for (list<int>::iterator it = players.begin(); it != players.end(); ++it)
+		if (*it == uid)
+			return true;
+	return false;
 }
 
-player* node::get_player(int index) {
-	if (index < 0 || index >= get_players_count())
-		return nullptr;
 
-	int i = 0;
-	for (list<player*>::iterator it = players.begin(); it != players.end(); ++it )
-	{
-		if (index == i)
-			return *it;
-		i++;
-	}
-	
-	return nullptr;
+int node::get_players_count() {
+	return players.size();
 }
 
 

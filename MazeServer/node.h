@@ -17,7 +17,8 @@ class node {
 	//номера соседних узлов по соответствующим направлениям.
 	int up, down, left, right, up_left, up_right, down_left, down_right;
 	//список игроков, в данный момент находящихся в локации
-	list<player*> players;
+	//list<player*> players;
+	list<int> players;
 
 public:
 	//если узла нет, нужно установить -1
@@ -37,13 +38,15 @@ public:
 	int get_down_right();
 
 	//добавляет игрока в заданный узел
-	void add_player(player* _player);
+	void add_player(int uid);
 	//удаляет игрока из заданного узла по его идентификатору и возвращает на него ссылку
-	player* remove_player(int uid);
+	void remove_player(int uid);
 	//проверяет, есть ли игроки в локации и возвращает true, если есть
 	bool contains_players();
 	//возвращает число игроков в узле
 	int get_players_count();
+	//проверяет, принадлежит ли игрок с заданным uid узлу и возвращает true, если это так
+	bool contains_player(int uid);
 	//возвращает игрока по заданному индексу
-	player* get_player(int index);
+	//player* get_player(int index);
 };
