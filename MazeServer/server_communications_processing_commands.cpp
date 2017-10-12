@@ -38,7 +38,7 @@ int lsm_server::process_quit_message(SOCKET s, char* msg, int size, int* server_
 	return 0;
 }
 
-game_map* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl)
+game* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl)
 {
 	//если нет аргумента или аргумент слишком большой
 	if (size <= COMMAND_LEN + 1 || size - COMMAND_LEN - 1 > 3) {
@@ -54,7 +54,7 @@ game_map* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* s
 
 	//TODO: подбор игры
 
-	game_map* game = games[0];
+	game* game = games[0];
 	int result = game->add_player(pl);
 	if (result < 0) {
 		send_error(s, "ER 403 Game is full. Please try later or choose another game.\r\n");

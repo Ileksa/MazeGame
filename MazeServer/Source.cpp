@@ -6,7 +6,7 @@
 //#include <Windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include "game_map.h"
+#include "game.h"
 #include "common_constants.h"
 #include "server_communications.h"
 
@@ -37,7 +37,7 @@ int main() {
 	//}
 	//wcout << endl;
 
-	//game_map* gmap = new game_map(1, 3);
+	//game* gmap = new game(1, 3);
 	//gmap->initialize(1);
 
 	//node* nd = gmap->get_node(4);

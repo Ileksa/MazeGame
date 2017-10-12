@@ -28,7 +28,7 @@ lsm_server::lsm_server(int port)
 		players[i] = nullptr;
 
 	games_count = GAMES_COUNT;
-	games = new game_map*[games_count];
+	games = new game*[games_count];
 	for (int i = 0; i < GAMES_COUNT; i++)
 		games[i] = nullptr;
 
@@ -94,7 +94,7 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 	char message[MSG_SIZE];
 	int result;
 	player* pl = nullptr;
-	game_map* game = nullptr;
+	game* g = nullptr;
 
 	while (true) {
 		memset(message, '\0', MSG_SIZE);
@@ -131,15 +131,15 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 					goto end;
 			}
 			else if (strncmp(message, "STAR 0", COMMAND_LEN + 1) == 0) {
-				game = process_star_message(s, message, result, &state, pl);
+				g = process_star_message(s, message, result, &state, pl);
 			}
 			else
 				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		case STATE_IN_GAME:
 			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
-				if (game != nullptr)
-					game->remove_player(pl);
+				if (g != nullptr)
+					g->remove_player(pl);
 
 				int res = process_quit_message(s, message, result, &state, pl);
 				if (res >= 0) {
@@ -246,22 +246,22 @@ void lsm_server::remove_player(player* pl)
 		players[uid] = nullptr;
 }
 
-game_map* lsm_server::initialize_default_game()
+game* lsm_server::initialize_default_game()
 {
-	game_map* game = new game_map(3);
+	game* g = new game(3);
 
-	game->add_node(new node(0, -1, 3, -1, -1, -1, -1, -1, 4));
-	game->add_node(new node(1, -1, 4, -1, 2));
-	game->add_node(new node(2, -1, 5, 1));
-	game->add_node(new node(3, 0, 6));
-	game->add_node(new node(4, 1, -1, -1, -1, 0, -1, -1, 8));
-	game->add_node(new node(5, 2, 8));
-	game->add_node(new node(6, 3, 9, -1, 7));
-	game->add_node(new node(7, -1, -1, 6, 8, -1, -1, 9, 11));
-	game->add_node(new node(8, 5, 11, 7, -1, 4));
-	game->add_node(new node(9, 6, -1, -1, 10, -1, 7));
-	game->add_node(new node(10, -1, -1, 9, 11));
-	game->add_node(new node(11, 8, -1, 10, -1, 7));
+	g->add_node(new node(0, -1, 3, -1, -1, -1, -1, -1, 4));
+	g->add_node(new node(1, -1, 4, -1, 2));
+	g->add_node(new node(2, -1, 5, 1));
+	g->add_node(new node(3, 0, 6));
+	g->add_node(new node(4, 1, -1, -1, -1, 0, -1, -1, 8));
+	g->add_node(new node(5, 2, 8));
+	g->add_node(new node(6, 3, 9, -1, 7));
+	g->add_node(new node(7, -1, -1, 6, 8, -1, -1, 9, 11));
+	g->add_node(new node(8, 5, 11, 7, -1, 4));
+	g->add_node(new node(9, 6, -1, -1, 10, -1, 7));
+	g->add_node(new node(10, -1, -1, 9, 11));
+	g->add_node(new node(11, 8, -1, 10, -1, 7));
 
-	return game;
+	return g;
 }

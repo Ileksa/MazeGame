@@ -11,7 +11,7 @@
 using namespace std;
 
 
-class game_map
+class game
 {
 	//номер карты
 	//int id;
@@ -23,8 +23,8 @@ class game_map
 	int max_players_count;
 
 public:
-	game_map(int _level_size);
-	virtual ~game_map();
+	game(int _level_size);
+	virtual ~game();
 
 	//int get_id();
 	int get_level_size();

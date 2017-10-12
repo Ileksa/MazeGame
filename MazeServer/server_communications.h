@@ -8,7 +8,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "common_constants.h"
-#include "game_map.h"
+#include "game.h"
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -30,7 +30,7 @@ class lsm_server
 	int players_count;
 
 	//все игры сервера
-	game_map** games;
+	game** games;
 	int games_count;
 
 	//добавляет игрока в таблицу игроков и возвращает его uid  в случае удачи, если неуспешно - -1
@@ -38,7 +38,7 @@ class lsm_server
 	void remove_player(player* pl);
 	
 	//метод, инициализирующий карту по умолчанию
-	game_map* initialize_default_game();
+	game* initialize_default_game();
 
 public:
 	lsm_server(int port);
@@ -67,6 +67,6 @@ public:
 	player* process_helo_message(SOCKET s, char* msg, int size, int* server_state);
 	//обрабатывает команду QUIT и возвращает -1, если не удалось отсоединиться
 	int process_quit_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
-	//обрабатывает команду STAR и возвращает game_map в случае успеха, иначе - nullptr
-	game_map* process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
+	//обрабатывает команду STAR и возвращает game в случае успеха, иначе - nullptr
+	game* process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
 };

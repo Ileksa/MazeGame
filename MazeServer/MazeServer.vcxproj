@@ -110,7 +110,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="game_map.cpp" />
+    <ClCompile Include="game.cpp" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="server_communications.cpp" />
@@ -119,7 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common_constants.h" />
-    <ClInclude Include="game_map.h" />
+    <ClInclude Include="game.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="server_communications.h" />

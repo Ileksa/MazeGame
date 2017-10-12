@@ -1,38 +1,38 @@
-﻿#include "game_map.h"
+﻿#include "game.h"
 
 
-game_map::game_map(int _level_size) {
+game::game(int _level_size) {
 	//id = id;
 	level_size = _level_size;
 	players_count = 0;
 	max_players_count = STANDARD_PLAYERS_COUNT_ON_MAP;
 }
-game_map::~game_map() {}
+game::~game() {}
 
-//int game_map::get_id() {
+//int game::get_id() {
 //	return id;
 //}
-int game_map::get_level_size() {
+int game::get_level_size() {
 	return level_size;
 }
 
 
-void game_map::add_node(node* _node) {
+void game::add_node(node* _node) {
 	if (_node == nullptr || _node->get_id() != get_nodes_count())
 		throw "Incorrect numbering of node";
 	nodes.push_back(_node);
 
 }
 //получить узел по индексу
-node* game_map::get_node(int index) {
+node* game::get_node(int index) {
 	return nodes.at(index);
 }
 //получить число узлов в карте
-int game_map::get_nodes_count() {
+int game::get_nodes_count() {
 	return nodes.size();
 }
 
-void game_map::output_map()
+void game::output_map()
 {
 	int level_size = get_level_size();
 	int count = get_nodes_count();
@@ -69,7 +69,7 @@ void game_map::output_map()
 //═╝╔═╗ ╔═╗╚═
 //╔═╝ ║ ║ ╚═╗
 //соседи слева и справа даны для того, чтобы корректно отображать диагонали
-void game_map::output_node_row(node* _node, node* _left, node* _right, int row)
+void game::output_node_row(node* _node, node* _left, node* _right, int row)
 {
 	//_setmode(_fileno(stdout), _O_U16TEXT);
 	//_setmode(_fileno(stdin), _O_U16TEXT);
@@ -193,12 +193,12 @@ void game_map::output_node_row(node* _node, node* _left, node* _right, int row)
 }
 
 //получить число игроков на карте
-int game_map::get_players_count() {
+int game::get_players_count() {
 	return players_count;
 }
 
 //добавить игрока в игру, в случа неуспеха возвращается -1, иначе - 0
-int game_map::add_player(player* pl)
+int game::add_player(player* pl)
 {
 	if (players_count >= max_players_count)
 		return -1;
@@ -208,7 +208,7 @@ int game_map::add_player(player* pl)
 	return 0;
 }
 
-int game_map::remove_player(player* pl)
+int game::remove_player(player* pl)
 {
 	reset_players_iterator();
 	player* p = current_player();
@@ -232,16 +232,16 @@ int game_map::remove_player(player* pl)
 //	int index_node = -1;
 //public:
 //возвращает игро
-player* game_map::current_player()
+player* game::current_player()
 {
 	return get_node(index_node)->get_player(index_in_node);
 }
 
-node* game_map::current_node() {
+node* game::current_node() {
 	return get_node(index_node);
 }
 //возвращает true, если удалось успешно передвинуться
-bool game_map::move_next()
+bool game::move_next()
 {
 	index_in_node++;
 	if (index_in_node == get_node(index_node)->get_players_count())
@@ -263,7 +263,7 @@ bool game_map::move_next()
 
 }
 //функция устанавливает указатель на первого игрока; если игроков вообще нет, возвращает false
-bool game_map::reset_players_iterator()
+bool game::reset_players_iterator()
 {
 	index_in_node = 0;
 	index_node = 0;
