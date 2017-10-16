@@ -1,3 +1,4 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "server_communications.h"
 player* lsm_server::process_helo_message(SOCKET s, char* msg, int size, int* server_state)
 {
@@ -17,12 +18,31 @@ player* lsm_server::process_helo_message(SOCKET s, char* msg, int size, int* ser
 		char buf[NICKNAME_LEN + 20];
 
 		memset(buf, '\0', sizeof(buf));
-		sprintf(buf, "OK 220 Welcome, %s! Your UID is %04d\r\n", pl->get_name(), uid);
+		sprintf(buf, "OK 220 Welcome, %s! Your UID is %d.\r\n", pl->get_name(), uid);
 
 		send_message(s, buf, strlen(buf));
 		*server_state = STATE_WORKING;
 		return pl;
 	}
+}
+
+
+int lsm_server::process_endg_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
+{
+	if (g != nullptr) {
+		g->remove_player(pl);
+		int index = get_index(g);
+		if (index > 0 && g->get_players_count() == 0)
+		{
+			delete games[index];
+			games[index] = nullptr;
+		}
+	}
+	*server_state = STATE_WORKING;
+	char buf[30] = "OK 251 You leaved the game.\r\n";
+	send_message(s, buf, sizeof(buf));
+	return 0;
+	
 }
 
 int lsm_server::process_quit_message(SOCKET s, char* msg, int size, int* server_state, player* pl)
@@ -38,8 +58,11 @@ int lsm_server::process_quit_message(SOCKET s, char* msg, int size, int* server_
 	return 0;
 }
 
-game* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl)
+game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg, int size, int* server_state, player* pl)
 {
+	wcout << L"[DEBUG] Process star message." << endl;
+
+
 	//если нет аргумента или аргумент слишком большой
 	if (size <= COMMAND_LEN + 1 || size - COMMAND_LEN - 1 > 3) {
 		send_error(s, "ER 501 Argument syntax error.\r\n");
@@ -61,13 +84,34 @@ game* lsm_server::process_star_message(SOCKET s, char* msg, int size, int* serve
 		return nullptr;
 	}
 
+	SOCKET s_notifications = socket(AF_INET, SOCK_STREAM, 0);
+	if (WSAGetLastError() != 0) {
+		wcout << L"Creating notifications socket error: " << WSAGetLastError() << endl;
+		return nullptr;
+	}
+
+	
+	wcout << L"[DEBUG] Before connect to socket notifications: " << inet_ntoa(tcpaddr.sin_addr) << endl;
+	
+	sockaddr_in addr = tcpaddr;
+	addr.sin_port = htons(1007);
+	connect(s_notifications, (SOCKADDR*)&addr, sizeof(addr));
+	if (WSAGetLastError() != 0) {
+		send_error(s, "ER 510 Port 1007 is not available for notifications.\r\n");
+		return nullptr;
+	}
+
+	wcout << L"[DEBUG] SOCKET for notifications is opened." << endl;
+	closesocket(s_notifications);
+	wcout << L"[DEBUG] SOCKET for notifications is closed." << endl;
+
 	//TODO: код на подключение к сокету 1007 клиента и в случа неуспеха удаление игрока
 	
 	char buf[100] = "OK 250 You added to game.\r\n";
 	send_message(s, buf, strlen(buf));
 
 	int count = game->get_nodes_count();
-	sprintf(buf, "MAP: %d\r\n", count);
+	sprintf(buf, "MAP: %d %d\r\n", count, game->get_level_size());
 	send_message(s, buf, strlen(buf));
 
 	for (int i = 0; i < count; i++)	{

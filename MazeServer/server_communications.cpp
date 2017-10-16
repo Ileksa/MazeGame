@@ -131,20 +131,16 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 					goto end;
 			}
 			else if (strncmp(message, "STAR 0", COMMAND_LEN + 1) == 0) {
-				g = process_star_message(s, message, result, &state, pl);
+				g = process_star_message(s, static_cast<client_communication_data*>(data)->tcpaddr, message, result, &state, pl);
 			}
 			else
 				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		case STATE_IN_GAME:
-			if (strlen(message) == 4 && strncmp(message, "QUIT", COMMAND_LEN) == 0) {
-				if (g != nullptr)
-					g->remove_player(pl);
-
-				int res = process_quit_message(s, message, result, &state, pl);
-				if (res >= 0) {
-					goto end;
-				}
+			if (strlen(message) == 4 && strncmp(message, "ENDG", COMMAND_LEN) == 0) {
+				int res = process_endg_message(s, message, result, &state, pl, g);
+				if (res >= 0)
+					g = nullptr;
 			}
 			else
 				send_error(s, "ER 581 Invalid command.\r\n");
@@ -245,6 +241,15 @@ void lsm_server::remove_player(player* pl)
 	if (uid != -1)
 		players[uid] = nullptr;
 }
+
+int lsm_server::get_index(game* g)
+{
+	for (int i = 0; i < games_count; i++)
+		if (games[i] == g)
+			return i;
+	return -1;
+}
+
 
 game* lsm_server::initialize_default_game()
 {

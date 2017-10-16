@@ -39,6 +39,8 @@ class lsm_server
 	
 	//метод, инициализирующий карту по умолчанию
 	game* initialize_default_game();
+	//получить индекс игры в массиве игр, возвращает -1 в случае неудачи
+	int get_index(game* g);
 
 public:
 	lsm_server(int port);
@@ -68,5 +70,8 @@ public:
 	//обрабатывает команду QUIT и возвращает -1, если не удалось отсоединиться
 	int process_quit_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
 	//обрабатывает команду STAR и возвращает game в случае успеха, иначе - nullptr
-	game* process_star_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
+	game* process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg, int size, int* server_state, player* pl);
+	//прекращает текущую игру и возвращает -1, если удалось отсоединить игрока от игры
+	int process_endg_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
+	
 };

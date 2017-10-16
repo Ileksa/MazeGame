@@ -3,6 +3,8 @@ player::player(char* _name) {
 	name = static_cast<char*>(malloc(NICKNAME_LEN + 1));
 	strncpy(name, _name, NICKNAME_LEN + 1);
 	name[NICKNAME_LEN] = '\0';
+
+	color = 1;
 	//free(name);
 }
 
@@ -21,4 +23,11 @@ void player::set_uid(int _uid) {
 
 int player::get_uid() {
 	return uid;
+}
+
+int player::get_color() {
+	return color;
+}
+void player::set_color(int _color) {
+	color = _color;
 }

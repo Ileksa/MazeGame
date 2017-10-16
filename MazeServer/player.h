@@ -17,6 +17,7 @@ class player
 	//сокет, на который отправляются уведомления во время игры
 	//SOCKET* socket_notifications;
 	char* name;
+	int color;
 public:
 	player(char* _name);
 	~player();
@@ -24,6 +25,9 @@ public:
 	char* get_name();
 	void set_uid(int _uid);
 	int get_uid();
+
+	int get_color();
+	void set_color(int color);
 
 	//установить или получить сокет для уведомлений
 	//void set_socket_notifications(SOCKET* s);

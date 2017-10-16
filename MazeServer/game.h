@@ -30,6 +30,7 @@ public:
 
 	//int get_id();
 	int get_level_size();
+	void set_level_size(int size);
 	//добавляет узел в карту
 	void add_node(node* _node);
 	//получить узел по индексу, нумерация начинается с нуля
@@ -48,6 +49,7 @@ public:
 
 	//добавить игрока в игру, в случа неуспеха возвращается -1
 	int add_player(player* pl);
+	int add_player_to_node(player* pl, int node_num);
 	//удаляет игрока из игры
 	int remove_player(player* pl);
 	int remove_player(int uid);

@@ -15,6 +15,10 @@ int game::get_level_size() {
 	return level_size;
 }
 
+void game::set_level_size(int size)
+{
+	level_size = size;
+}
 
 void game::add_node(node* _node) {
 	if (_node == nullptr || _node->get_id() != get_nodes_count())
@@ -213,6 +217,16 @@ int game::add_player(player* pl)
 
 	//TODO: добавить разные точки респауна игроков
 	get_node(0)->add_player(pl->get_uid());
+	return 0;
+}
+
+int game::add_player_to_node(player* pl, int node_num)
+{
+	if (players.size() >= max_players_count)
+		return -1;
+
+	players.push_back(pl);
+	get_node(node_num)->add_player(pl->get_uid());
 	return 0;
 }
 

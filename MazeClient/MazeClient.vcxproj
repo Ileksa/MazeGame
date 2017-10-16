@@ -74,6 +74,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\DashaSasha\Documents\Visual Studio 2015\Projects\MazeServer\MazeServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalUsingDirectories>C:\Users\DashaSasha\Documents\Visual Studio 2015\Projects\MazeServer\MazeServer;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,7 +112,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\MazeServer\game.cpp" />
+    <ClCompile Include="..\MazeServer\node.cpp" />
+    <ClCompile Include="..\MazeServer\player.cpp" />
+    <ClCompile Include="client_communications.cpp" />
+    <ClCompile Include="client_communications_outputs.cpp" />
+    <ClCompile Include="client_communications_processing_commands.cpp" />
     <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="client_communications.h" />
+    <ClInclude Include="client_constants.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
