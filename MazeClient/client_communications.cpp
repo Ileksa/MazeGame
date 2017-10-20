@@ -89,8 +89,32 @@ DWORD WINAPI process_notifications(LPVOID data)
 		res = get_command(s, buf, MSG_SIZE);
 		if (res < 0)
 			break;
+		system("cls");
 
-		//TODO: код отрисовки
+		if (strncmp(buf, "MOVE ", COMMAND_LEN + 1) == 0)
+		{
+			int uid, from, to;
+			char* start = buf + COMMAND_LEN + 1;
+			char* end = strstr(buf + COMMAND_LEN + 1, " ");
+			*end = '\0';
+			uid = atoi(start);
+
+			start = end + 1;
+			end = strstr(start, " ");
+			*end = '\0';
+			from = atoi(start);
+
+			start = end + 1;
+			to = atoi(start);
+
+			//res = scanf(buf + COMMAND_LEN + 1, "%d %d %d", &uid, &from, &to);
+			//if (res < 0)
+		//		continue;
+			g->get_node(from)->remove_player(uid);
+			g->get_node(to)->add_player(uid);
+		}
+
+		g->output_map();
 	}
 
 	wcout << L"[Second thread] Will delete objects" << endl;

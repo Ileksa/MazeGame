@@ -53,9 +53,15 @@ public:
 	//удаляет игрока из игры
 	int remove_player(player* pl);
 	int remove_player(int uid);
+	//удаляет игрока с заданного узла
+	int remove_player_from_node(player* pl, int node_num);
 
 	virtual void output_map();
 	//отображает один из пяти рядов комнаты (0-4); ширина - 11 ячеек
+
+	//уведомляет других игроков о перемещении игрока с заданными uid с узла from к узлу to
+	int notify_players_move(int uid, int from, int to);
+	int notify_players_quit(int uid, int from);
 protected:
 	virtual void output_node_row(node* _node, node* _left, node* _right, int row);
 

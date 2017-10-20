@@ -5,10 +5,12 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <conio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <string>
 #include "../MazeServer/game.h"
+
 
 using namespace std;
 //получить айпи и записать в буфер размера buf_size; message - текст приглашения ко вводу
@@ -31,6 +33,8 @@ void output_menu();
 //обработка команд-----------------------------------------------
 //start [num] -> будет посылаться команда STAR [num]; в случае ошибки возвращает -1, в случае успеха - 0
 int process_start_command(SOCKET s, wstring message, int uid);
+//осуществляет обработку команд, вводимых с клавиатуры
+void process_game_commands(SOCKET s, int uid, int start_node);
 
 
 //работа второго потока ---------------------------------------------------

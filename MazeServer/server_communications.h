@@ -73,5 +73,6 @@ public:
 	game* process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg, int size, int* server_state, player* pl);
 	//прекращает текущую игру и возвращает -1, если удалось отсоединить игрока от игры
 	int process_endg_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
-	
+	//обрабатывает команду движения игрока из заданной позиции
+	int process_move_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
 };

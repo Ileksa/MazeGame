@@ -254,10 +254,25 @@ int game::remove_player(int uid)
 	if (index == -1)
 		return -1;
 
+	player* pl = *(players.begin() + index);
+
+	closesocket(pl->get_socket_notifications());
+	pl->set_socket_notifications(-1);
+
 	players.erase(players.begin() + index);
 	return 0;
 }
 
+int game::remove_player_from_node(player* pl, int node_num)
+{
+	node* n = get_node(node_num);
+	
+	if (n == nullptr)
+		return -1;
+
+	n->remove_player(pl->get_uid());
+	return 0;
+}
 
 node* game::get_player_node(player* pl) {
 	return get_player_node(pl->get_uid());
@@ -267,4 +282,28 @@ node* game::get_player_node(int uid) {
 		if (nodes[i]->contains_player(uid))
 			return nodes[i];
 	return nullptr;
+}
+
+int game::notify_players_move(int uid, int from, int to)
+{
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+
+	sprintf(message, "MOVE %d %d %d\r\n", uid, from, to);
+	for (int i = 0; i < players.size(); i++)
+		send(players[i]->get_socket_notifications(), message, strlen(message), 0);
+	
+	return 0;
+}
+
+int game::notify_players_quit(int uid, int from)
+{
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+
+	sprintf(message, "QUIT %d %d\r\n", uid, from);
+	for (int i = 0; i < players.size(); i++)
+		send(players[i]->get_socket_notifications(), message, strlen(message), 0);
+
+	return 0;
 }

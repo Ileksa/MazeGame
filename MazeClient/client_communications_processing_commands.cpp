@@ -94,6 +94,8 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	if (result < 0)
 		goto connection_error;
 
+	//считать игроков
+	int start_position;
 	int players_count;
 	sscanf(buf, "%s %d", intermediate_buf, &players_count);
 	for (int i = 0; i < players_count; i++)
@@ -108,6 +110,9 @@ int process_start_command(SOCKET s, wstring message, int uid)
 		pl->set_uid(id);
 		pl->set_color(color);
 		g->add_player_to_node(pl, position);
+
+		if (id == uid)
+			start_position = position;
 	}
 	g->output_map();
 
@@ -120,7 +125,8 @@ int process_start_command(SOCKET s, wstring message, int uid)
 		goto error_end;
 	}
 
-	system("pause");
+	process_game_commands(s, uid, start_position);
+
 	closesocket(s_notifications);
 
 	memset(buf, '\0', MSG_SIZE);
@@ -143,4 +149,35 @@ error_end:
 	closesocket(s_notifications);
 	system("pause");
 	return -1;
+}
+
+
+void process_game_commands(SOCKET s, int uid, int start_node)
+{
+	char command;
+	char message[MSG_SIZE];
+	int current_node = start_node;
+
+	while (true)
+	{
+		command = _getch();
+		if (command == '2')
+		{
+			memset(message, '\0', MSG_SIZE);
+			sprintf(message, "MOVE %s %d\r\n", "DOWN", current_node);
+			send_command(s, message, strlen(message));
+
+			get_command(s, message, MSG_SIZE);
+			if (strncmp(message, "OK", 2) == 0)
+				current_node = atoi(message + 8);
+		}
+		else if (command = 'q')
+		{
+			memset(message, '\0', MSG_SIZE);
+			sprintf(message, "ENDG\r\n");
+			send_command(s, message, strlen(message));
+			get_command(s, message, MSG_SIZE);
+			return;
+		}
+	}
 }

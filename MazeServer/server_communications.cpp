@@ -142,6 +142,10 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 				if (res >= 0)
 					g = nullptr;
 			}
+			else if (strncmp(message, "MOVE", COMMAND_LEN) == 0)
+			{
+				int res = process_move_message(s, message, result, &state, pl, g);
+			}
 			else
 				send_error(s, "ER 581 Invalid command.\r\n");
 			break;

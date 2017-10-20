@@ -5,6 +5,7 @@ player::player(char* _name) {
 	name[NICKNAME_LEN] = '\0';
 
 	color = 1;
+	socket_notifications = -1;
 	//free(name);
 }
 
@@ -30,4 +31,11 @@ int player::get_color() {
 }
 void player::set_color(int _color) {
 	color = _color;
+}
+
+void player::set_socket_notifications(SOCKET s) {
+	socket_notifications = s;
+}
+SOCKET player::get_socket_notifications() {
+	return socket_notifications;
 }

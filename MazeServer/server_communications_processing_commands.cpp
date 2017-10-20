@@ -62,7 +62,6 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 {
 	wcout << L"[DEBUG] Process star message." << endl;
 
-
 	//если нет аргумента или аргумент слишком большой
 	if (size <= COMMAND_LEN + 1 || size - COMMAND_LEN - 1 > 3) {
 		send_error(s, "ER 501 Argument syntax error.\r\n");
@@ -101,11 +100,10 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 		return nullptr;
 	}
 
+	pl->set_socket_notifications(s_notifications);
 	wcout << L"[DEBUG] SOCKET for notifications is opened." << endl;
-	closesocket(s_notifications);
-	wcout << L"[DEBUG] SOCKET for notifications is closed." << endl;
+	
 
-	//TODO: код на подключение к сокету 1007 клиента и в случа неуспеха удаление игрока
 	
 	char buf[100] = "OK 250 You added to game.\r\n";
 	send_message(s, buf, strlen(buf));
@@ -135,16 +133,86 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 
 		}
 
-		/*game->reset_players_iterator();
-		player* pl = game->current_player();
-		send_message(s, buf, strlen(buf));
-		while (game->move_next()) 		{
-			pl = game->current_player();
-			sprintf(buf, "%d %s %d %d\r\n", pl->get_uid(), pl->get_name(), 1, game->current_node()->get_id());
-		}*/
 	}
 
 	*server_state = STATE_IN_GAME;
 
 	return game;
 }
+
+//обрабатывает команду движения игрока из заданной позиции
+int lsm_server::process_move_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
+{
+	wcout << L"[DEBUG] Start process move message" << endl;
+	if (size <= COMMAND_LEN + 1) {
+		send_error(s, "ER 501 Argument syntax error.\r\n");
+		return -1;
+	}
+
+	const int dir_size = 11;
+	char direction[dir_size];
+	memset(direction, '\0', dir_size);
+	wcout << L"[DEBUG] Will find here" << msg + COMMAND_LEN + 1 << endl;
+
+	char* pos = strstr(msg + COMMAND_LEN + 1, " ");
+	char* c = msg + COMMAND_LEN + 1;
+	int i = 0;
+	while (c != pos)
+	{
+		direction[i] = *c;
+		i++;
+		c++;
+	}
+	//strncpy(direction, msg + COMMAND_LEN + 1, msg + COMMAND_LEN + 1 - pos);
+	int from_node = atoi(pos + 1);
+
+	wcout << L"Get direction" << direction << "and from_node: " << from_node << endl;
+
+
+	node* n = g->get_node(from_node);
+	int new_node = -1;
+	if (strncmp(direction, "UP", dir_size) == 0)
+		new_node = n->get_up();
+	else if (strncmp(direction, "DOWN", dir_size) == 0)
+		new_node = n->get_down();
+	else if (strncmp(direction, "LEFT", dir_size) == 0)
+		new_node = n->get_left();
+	else if (strncmp(direction, "RIGHT", dir_size) == 0)
+		new_node = n->get_right();
+	else if (strncmp(direction, "UPLEFT", dir_size) == 0)
+		new_node = n->get_up_left();
+	else if (strncmp(direction, "UPRIGHT", dir_size) == 0)
+		new_node = n->get_up_right();
+	else if (strncmp(direction, "DOWNLEFT", dir_size) == 0)
+		new_node = n->get_down_left();
+	else if (strncmp(direction, "DOWNRIGHT", dir_size) == 0)
+		new_node = n->get_down_right();
+
+	if (new_node == -1) {
+		send_error(s, "ER 582 You cannot move in the intend direction from current node.\r\n");
+		return -1;
+	}
+
+	int result = g->remove_player_from_node(pl, from_node);
+	if (result < 0) {
+		send_error(s, "ER 400 Internal server error.\r\n");
+		return -1;
+	}
+	result = g->add_player_to_node(pl, new_node);
+	if (result < 0) {
+		send_error(s, "ER 404 Internal server error. You will be removed from current game.\r\n");
+		g->notify_players_quit(pl->get_uid(), from_node);
+		g->remove_player(pl);
+		*server_state = STATE_WORKING;
+		return -1;
+	}
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+	sprintf(message, "OK 245 %d\r\n", new_node);
+	send_message(s, message, strlen(message));
+	g->notify_players_move(pl->get_uid(), from_node, new_node);
+
+	return 0;
+}
+
+
