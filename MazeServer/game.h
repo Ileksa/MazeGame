@@ -4,6 +4,7 @@
 #include "node.h"
 #include <list>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <io.h>
 #include <fcntl.h>
@@ -21,7 +22,8 @@ class game
 	int level_size;
 
 	//список всех игроков
-	vector<player*> players;
+	map<player*, node*> players;
+	//vector<player*> players;
 	int max_players_count;
 
 public:
@@ -41,8 +43,8 @@ public:
 	//получить число игроков на карте
 	int get_players_count();
 	//получить игрока по индексу
-	vector<player*>::iterator get_players_iterator_begin();
-	vector<player*>::iterator get_players_iterator_end();
+	map<player*, node*>::iterator get_players_iterator_begin();
+	map<player*, node*>::iterator get_players_iterator_end();
 	//получить узел, в котором находится игрок (возвращет nullptr, если не удалось)
 	node* get_player_node(player* pl);
 	node* get_player_node(int uid);
@@ -53,8 +55,11 @@ public:
 	//удаляет игрока из игры
 	int remove_player(player* pl);
 	int remove_player(int uid);
-	//удаляет игрока с заданного узла
-	int remove_player_from_node(player* pl, int node_num);
+
+	//возвращает -1 в случае неудачи
+	int set_player_node(player* pl, int new_node);
+	int set_player_node(int uid, int new_node);
+
 
 	virtual void output_map();
 	//отображает один из пяти рядов комнаты (0-4); ширина - 11 ячеек

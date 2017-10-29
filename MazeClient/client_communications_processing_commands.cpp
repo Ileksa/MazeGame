@@ -169,7 +169,7 @@ void process_game_commands(SOCKET s, int uid, int start_node)
 
 			get_command(s, message, MSG_SIZE);
 			if (strncmp(message, "OK", 2) == 0)
-				current_node = atoi(message + 8);
+				current_node = atoi(message + 7);
 		}
 		else if (command = 'q')
 		{

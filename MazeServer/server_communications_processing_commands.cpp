@@ -125,14 +125,13 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 
 	if (count > 0) {
 		int i = 0;
-		for(vector<player*>::iterator it = game->get_players_iterator_begin(); 
+		for(auto it = game->get_players_iterator_begin(); 
 			it !=  game->get_players_iterator_end(); ++it)
 		{
-			sprintf(buf, "%d %s %d %d\r\n", (*it)->get_uid(), (*it)->get_name(), 1, game->get_player_node(*it)->get_id());
+			sprintf(buf, "%d %s %d %d\r\n", it->first->get_uid(), it->first->get_name(), 1, it->second->get_id());
 			send_message(s, buf, strlen(buf));
 
 		}
-
 	}
 
 	*server_state = STATE_IN_GAME;
@@ -164,12 +163,12 @@ int lsm_server::process_move_message(SOCKET s, char* msg, int size, int* server_
 		c++;
 	}
 	//strncpy(direction, msg + COMMAND_LEN + 1, msg + COMMAND_LEN + 1 - pos);
-	int from_node = atoi(pos + 1);
+	//int from_node = atoi(pos + 1);
 
-	wcout << L"Get direction" << direction << "and from_node: " << from_node << endl;
+	wcout << L"[DEBUG] Get direction" << direction << endl;
 
 
-	node* n = g->get_node(from_node);
+	node* n = g->get_player_node(pl);
 	int new_node = -1;
 	if (strncmp(direction, "UP", dir_size) == 0)
 		new_node = n->get_up();
@@ -193,26 +192,26 @@ int lsm_server::process_move_message(SOCKET s, char* msg, int size, int* server_
 		return -1;
 	}
 
-	int result = g->remove_player_from_node(pl, from_node);
+
+	int result = g->set_player_node(pl, new_node);
+
+	//int result = g->remove_player_from_node(pl, from_node);
 	if (result < 0) {
 		send_error(s, "ER 400 Internal server error.\r\n");
 		return -1;
 	}
 	result = g->add_player_to_node(pl, new_node);
-	if (result < 0) {
-		send_error(s, "ER 404 Internal server error. You will be removed from current game.\r\n");
-		g->notify_players_quit(pl->get_uid(), from_node);
-		g->remove_player(pl);
-		*server_state = STATE_WORKING;
-		return -1;
-	}
+
 	char message[MSG_SIZE];
 	memset(message, '\0', MSG_SIZE);
 	sprintf(message, "OK 245 %d\r\n", new_node);
 	send_message(s, message, strlen(message));
-	g->notify_players_move(pl->get_uid(), from_node, new_node);
+	g->notify_players_move(pl->get_uid(), n->get_id(), new_node);
 
 	return 0;
 }
 
-
+int process_shot_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
+{
+	
+}

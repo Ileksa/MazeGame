@@ -200,10 +200,10 @@ int game::get_players_count() {
 	return players.size();
 }
 
-vector<player*>::iterator game::get_players_iterator_begin(){
+map<player*, node*>::iterator game::get_players_iterator_begin(){
 	return players.begin();
 }
-vector<player*>::iterator game::get_players_iterator_end() {
+map<player*, node*>::iterator game::get_players_iterator_end() {
 	return players.end();
 }
 
@@ -213,10 +213,9 @@ int game::add_player(player* pl)
 	if (players.size() >= max_players_count)
 		return -1;
 
-	players.push_back(pl);
+	players.insert_or_assign(pl, get_node(0));
 
 	//TODO: добавить разные точки респауна игроков
-	get_node(0)->add_player(pl->get_uid());
 	return 0;
 }
 
@@ -225,62 +224,64 @@ int game::add_player_to_node(player* pl, int node_num)
 	if (players.size() >= max_players_count)
 		return -1;
 
-	players.push_back(pl);
-	get_node(node_num)->add_player(pl->get_uid());
+	players.insert_or_assign(pl, get_node(node_num));
 	return 0;
 }
 
 int game::remove_player(player* pl)
 {
-	int uid = pl->get_uid();
-	return remove_player(uid);
+	players.erase(pl);
+	return 0;
 }
 
 int game::remove_player(int uid)
 {
-	for (int i = 0; i < get_nodes_count(); i++)
-		if (nodes[i]->contains_player(uid))
-		{
-			nodes[i]->remove_player(uid);
-			break;
-		}
+	player* pl = nullptr;
+	for (auto it = players.begin(); it != players.end(); ++it)
+		if (it->first->get_uid() == uid)
+			pl = it->first;
 
-	int index = -1;
-	for (int i = 0; i < players.size(); i++)
-		if (players[i]->get_uid() == uid)
-			index = i;
-		
-
-	if (index == -1)
-		return -1;
-
-	player* pl = *(players.begin() + index);
+	if (pl == nullptr)
+		return 0;
 
 	closesocket(pl->get_socket_notifications());
 	pl->set_socket_notifications(-1);
 
-	players.erase(players.begin() + index);
+	players.erase(pl);
 	return 0;
 }
 
-int game::remove_player_from_node(player* pl, int node_num)
+int game::set_player_node(player* pl, int new_node)
 {
-	node* n = get_node(node_num);
-	
-	if (n == nullptr)
+	if (new_node >= get_nodes_count())
 		return -1;
 
-	n->remove_player(pl->get_uid());
+	try {
+		players[pl] = get_node(new_node);
+	}
+	catch(exception &e)
+	{
+		return -1;
+	}
 	return 0;
 }
 
+int game::set_player_node(int uid, int new_node)
+{
+	for (auto it = players.begin(); it != players.end(); ++it)
+		if (it->first->get_uid() == uid)
+			return set_player_node(it->first, new_node);
+	return -1;
+}
+
+
 node* game::get_player_node(player* pl) {
-	return get_player_node(pl->get_uid());
+	return players[pl];
 }
 node* game::get_player_node(int uid) {
-	for (int i = 0; i < get_nodes_count(); i++)
-		if (nodes[i]->contains_player(uid))
-			return nodes[i];
+	for (auto it = players.begin(); it != players.end(); ++it)
+		if (it->first->get_uid() == uid)
+			return it->second;
 	return nullptr;
 }
 
@@ -290,8 +291,9 @@ int game::notify_players_move(int uid, int from, int to)
 	memset(message, '\0', MSG_SIZE);
 
 	sprintf(message, "MOVE %d %d %d\r\n", uid, from, to);
-	for (int i = 0; i < players.size(); i++)
-		send(players[i]->get_socket_notifications(), message, strlen(message), 0);
+
+	for (auto it = players.begin(); it != players.end(); ++it)
+		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 	
 	return 0;
 }
@@ -302,8 +304,8 @@ int game::notify_players_quit(int uid, int from)
 	memset(message, '\0', MSG_SIZE);
 
 	sprintf(message, "QUIT %d %d\r\n", uid, from);
-	for (int i = 0; i < players.size(); i++)
-		send(players[i]->get_socket_notifications(), message, strlen(message), 0);
+	for (auto it = players.begin(); it != players.end(); ++it)
+		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 
 	return 0;
 }

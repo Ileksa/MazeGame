@@ -110,8 +110,9 @@ DWORD WINAPI process_notifications(LPVOID data)
 			//res = scanf(buf + COMMAND_LEN + 1, "%d %d %d", &uid, &from, &to);
 			//if (res < 0)
 		//		continue;
-			g->get_node(from)->remove_player(uid);
-			g->get_node(to)->add_player(uid);
+			g->set_player_node(uid, to);
+			//g->get_node(from)->remove_player(uid);
+			//g->get_node(to)->add_player(uid);
 		}
 
 		g->output_map();

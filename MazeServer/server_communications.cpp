@@ -103,7 +103,13 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 		wcout << L"[DEBUG] Get a command: " << message << endl;
 
 		if (result == -2)
+		{
+			if (g != nullptr)
+				g->remove_player(pl);
+			if (pl != nullptr)
+				remove_player(pl);
 			goto end;
+		}
 
 		if (result <= 0) {
 			send_error(s, "ER 500 Syntax error, command isn't recognized.\r\n");
@@ -146,7 +152,7 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 			{
 				int res = process_move_message(s, message, result, &state, pl, g);
 			}
-			else
+			else 
 				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		default:

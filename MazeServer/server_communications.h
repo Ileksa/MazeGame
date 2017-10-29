@@ -75,4 +75,6 @@ public:
 	int process_endg_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
 	//обрабатывает команду движения игрока из заданной позиции
 	int process_move_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
+	//обрабатывает команду выстрела
+	int process_shot_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g);
 };
