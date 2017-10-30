@@ -114,7 +114,53 @@ DWORD WINAPI process_notifications(LPVOID data)
 			//g->get_node(from)->remove_player(uid);
 			//g->get_node(to)->add_player(uid);
 		}
+		else if (strncmp(buf, "QUIT ", COMMAND_LEN + 1) == 0)
+		{
+			int uid, from;
+			char* start = buf + COMMAND_LEN + 1;
+			char* end = strstr(buf + COMMAND_LEN + 1, " ");
+			*end = '\0';
+			uid = atoi(start);
 
+			start = end + 1;
+			//end = strstr(start, " ");
+			//*end = '\0';
+			from = atoi(start);
+
+			g->remove_player(uid);
+		}
+		else if (strncmp(buf, "JOIN ", COMMAND_LEN + 1) == 0)
+		{
+			//UID name color position
+			int uid, color, position;
+			char name[NICKNAME_LEN];
+			memset(name, '\0', NICKNAME_LEN);
+
+			char* start = buf + COMMAND_LEN + 1;
+			char* end = strstr(buf + COMMAND_LEN + 1, " ");
+			*end = '\0';
+			uid = atoi(start);
+
+			start = end + 1;
+			end = strstr(start, " ");
+			*end = '\0';
+			strncpy(name, start, NICKNAME_LEN - 1);
+
+			start = end + 1;
+			end = strstr(start, " ");
+			*end = '\0';
+			color = atoi(start);
+
+			start = end + 1;
+			position = atoi(start);
+
+
+
+			player* pl = new player(name);
+			pl->set_uid(uid);
+			pl->set_color(color);
+			g->add_player_to_node(pl, position);
+		}
 		g->output_map();
 	}
 

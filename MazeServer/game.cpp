@@ -47,18 +47,20 @@ void game::output_map()
 			for (int j = 0; j < level_size; j++) {
 				if (j == 0) {
 					if (level_size > 1) {
-						output_node_row(get_node(i*level_size + j), nullptr, get_node(i*level_size + j + 1), k);
+						output_node_row(get_node(i*level_size + j), nullptr, get_node(i*level_size + j + 1), k, 
+							get_players_at_node(i*level_size + j));
 					}
 					else {
-						output_node_row(get_node(i*level_size + j), nullptr, nullptr, k);
+						output_node_row(get_node(i*level_size + j), nullptr, nullptr, k, get_players_at_node(i*level_size + j));
 					}
 				}
 				else if (j == level_size - 1) {
-					output_node_row(get_node(i*level_size + j), get_node(i*level_size + j - 1), nullptr, k);
+					output_node_row(get_node(i*level_size + j), get_node(i*level_size + j - 1), nullptr, k, 
+						get_players_at_node(i*level_size + j));
 				}
 				else {
 					output_node_row(get_node(i*level_size + j), get_node(i*level_size + j - 1),
-						get_node(i*level_size + j + 1), k);
+						get_node(i*level_size + j + 1), k, get_players_at_node(i*level_size + j));
 				}
 			}
 			wcout << endl;
@@ -72,7 +74,7 @@ void game::output_map()
 //═╝╔═╗ ╔═╗╚═
 //╔═╝ ║ ║ ╚═╗
 //соседи слева и справа даны для того, чтобы корректно отображать диагонали
-void game::output_node_row(node* _node, node* _left, node* _right, int row)
+void game::output_node_row(node* _node, node* _left, node* _right, int row, vector<player*> pls)
 {
 	//_setmode(_fileno(stdout), _O_U16TEXT);
 	//_setmode(_fileno(stdin), _O_U16TEXT);
@@ -111,7 +113,7 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row)
 		else
 			wcout << L" ║";
 
-		if (_node->contains_players())
+		if (pls.size() > 0)
 			wcout << L"  ***  ";
 		else
 			wcout << L"       ";
@@ -129,7 +131,7 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row)
 		else
 			wcout << L" ║";
 
-		if (_node->contains_players())
+		if (pls.size() > 0)
 			wcout << L"  ***  ";
 		else
 			wcout << L"       ";
@@ -308,4 +310,29 @@ int game::notify_players_quit(int uid, int from)
 		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 
 	return 0;
+}
+
+
+int game::notify_players_join(player* pl)
+{
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+
+	int uid = pl->get_uid();
+	node* n = players[pl];
+	sprintf(message, "JOIN %d %s %d %d\r\n", uid, pl->get_name(), pl->get_color(), n->get_id());
+	for (auto it = players.begin(); it != players.end(); ++it)
+		if (it->first->get_uid() != uid) //уведомление не придет самому игроку
+			send(it->first->get_socket_notifications(), message, strlen(message), 0);
+	return 0;
+}
+
+
+vector<player*> game::get_players_at_node(int nid)
+{
+	vector<player*> pls;
+	for (auto it = players.begin(); it != players.end(); ++it)
+		if (it->second->get_id() == nid)
+			pls.push_back(it->first);
+	return pls;
 }

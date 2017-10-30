@@ -49,6 +49,8 @@ public:
 	node* get_player_node(player* pl);
 	node* get_player_node(int uid);
 
+	vector<player*> get_players_at_node(int node);
+
 	//добавить игрока в игру, в случа неуспеха возвращается -1
 	int add_player(player* pl);
 	int add_player_to_node(player* pl, int node_num);
@@ -67,7 +69,8 @@ public:
 	//уведомляет других игроков о перемещении игрока с заданными uid с узла from к узлу to
 	int notify_players_move(int uid, int from, int to);
 	int notify_players_quit(int uid, int from);
+	int notify_players_join(player* pl);
 protected:
-	virtual void output_node_row(node* _node, node* _left, node* _right, int row);
+	virtual void output_node_row(node* _node, node* _left, node* _right, int row, vector<player*> pls);
 
 };

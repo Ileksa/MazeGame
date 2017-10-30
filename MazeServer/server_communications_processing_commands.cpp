@@ -30,6 +30,7 @@ player* lsm_server::process_helo_message(SOCKET s, char* msg, int size, int* ser
 int lsm_server::process_endg_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
 {
 	if (g != nullptr) {
+		int node_id = g->get_player_node(pl)->get_id();
 		g->remove_player(pl);
 		int index = get_index(g);
 		if (index > 0 && g->get_players_count() == 0)
@@ -37,6 +38,9 @@ int lsm_server::process_endg_message(SOCKET s, char* msg, int size, int* server_
 			delete games[index];
 			games[index] = nullptr;
 		}
+		else
+			g->notify_players_quit(pl->get_uid(), node_id);
+
 	}
 	*server_state = STATE_WORKING;
 	char buf[30] = "OK 251 You leaved the game.\r\n";
@@ -135,7 +139,7 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 	}
 
 	*server_state = STATE_IN_GAME;
-
+	game->notify_players_join(pl);
 	return game;
 }
 
@@ -211,7 +215,20 @@ int lsm_server::process_move_message(SOCKET s, char* msg, int size, int* server_
 	return 0;
 }
 
-int process_shot_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
+int lsm_server::process_shot_message(SOCKET s, char* msg, int size, int* server_state, player* pl, game* g)
 {
+	node* n = g->get_player_node(pl);
+	player* shooted_player = nullptr;
+
+	for (auto it = g->get_players_iterator_begin(); it != g->get_players_iterator_end(); ++it)
+		if (it->second == n && it->first != pl)
+			shooted_player = it->first;
 	
+	if (shooted_player == nullptr)
+		return 0;
+
+	g->set_player_node(shooted_player, 0);
+
+	g->notify_players_move(shooted_player->get_uid(), n->get_id(), 0);
+	return 0;
 }

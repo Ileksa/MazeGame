@@ -152,7 +152,11 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 			{
 				int res = process_move_message(s, message, result, &state, pl, g);
 			}
-			else 
+			else if (strncmp(message, "SHOT", COMMAND_LEN) == 0)
+			{
+				int res = process_shot_message(s, message, result, &state, pl, g);
+			}
+			else
 				send_error(s, "ER 581 Invalid command.\r\n");
 			break;
 		default:

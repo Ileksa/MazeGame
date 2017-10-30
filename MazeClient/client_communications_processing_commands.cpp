@@ -156,28 +156,48 @@ void process_game_commands(SOCKET s, int uid, int start_node)
 {
 	char command;
 	char message[MSG_SIZE];
-	int current_node = start_node;
 
 	while (true)
 	{
 		command = _getch();
-		if (command == '2')
+		if (iswdigit(command))
 		{
 			memset(message, '\0', MSG_SIZE);
-			sprintf(message, "MOVE %s %d\r\n", "DOWN", current_node);
-			send_command(s, message, strlen(message));
+			if (command == '2')
+				sprintf(message, "MOVE %s \r\n", "DOWN");
+			else if (command == '8')
+				sprintf(message, "MOVE %s \r\n", "UP");
+			else if (command == '4')
+				sprintf(message, "MOVE %s \r\n", "LEFT");
+			else if (command == '6')
+				sprintf(message, "MOVE %s \r\n", "RIGHT");
+			else if (command == '7')
+				sprintf(message, "MOVE %s \r\n", "UPLEFT");
+			else if (command == '9')
+				sprintf(message, "MOVE %s \r\n", "UPRIGHT");
+			else if (command == '1')
+				sprintf(message, "MOVE %s \r\n", "DOWNLEFT");
+			else if (command == '3')
+				sprintf(message, "MOVE %s \r\n", "DOWNRIGHT");
+			else
+				continue;
 
+			send_command(s, message, strlen(message));
 			get_command(s, message, MSG_SIZE);
-			if (strncmp(message, "OK", 2) == 0)
-				current_node = atoi(message + 7);
 		}
-		else if (command = 'q')
+		else if (command == 'q')
 		{
 			memset(message, '\0', MSG_SIZE);
 			sprintf(message, "ENDG\r\n");
 			send_command(s, message, strlen(message));
 			get_command(s, message, MSG_SIZE);
 			return;
+		}
+		else if (command == ' ')
+		{
+			memset(message, '\0', MSG_SIZE);
+			sprintf(message, "SHOT\r\n");
+			send_command(s, message, strlen(message));
 		}
 	}
 }
