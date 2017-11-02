@@ -112,6 +112,8 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 	char buf[100] = "OK 250 You added to game.\r\n";
 	send_message(s, buf, strlen(buf));
 
+	//pl->set_color(game->pop_available_color());
+	wcout << L"[DEBUG] Player color:" << pl->get_color() << endl;
 	int count = game->get_nodes_count();
 	sprintf(buf, "MAP: %d %d\r\n", count, game->get_level_size());
 	send_message(s, buf, strlen(buf));
@@ -132,7 +134,7 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 		for(auto it = game->get_players_iterator_begin(); 
 			it !=  game->get_players_iterator_end(); ++it)
 		{
-			sprintf(buf, "%d %s %d %d\r\n", it->first->get_uid(), it->first->get_name(), 1, it->second->get_id());
+			sprintf(buf, "%d %s %d %d\r\n", it->first->get_uid(), it->first->get_name(), it->first->get_color(), it->second->get_id());
 			send_message(s, buf, strlen(buf));
 
 		}

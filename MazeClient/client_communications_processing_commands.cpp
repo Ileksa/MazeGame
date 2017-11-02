@@ -109,7 +109,7 @@ int process_start_command(SOCKET s, wstring message, int uid)
 		player* pl = new player(name);
 		pl->set_uid(id);
 		pl->set_color(color);
-		g->add_player_to_node(pl, position);
+		g->add_player_to_node(pl, position, color);
 
 		if (id == uid)
 			start_position = position;

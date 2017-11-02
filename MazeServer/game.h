@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "player.h"
 #include "node.h"
+#include "common_constants.h"
 #include <list>
 #include <vector>
 #include <map>
@@ -25,6 +26,9 @@ class game
 	map<player*, node*> players;
 	//vector<player*> players;
 	int max_players_count;
+
+	//доступные цвета
+	vector<ConsoleColor> available_colors;
 
 public:
 	game(int _level_size);
@@ -52,8 +56,8 @@ public:
 	vector<player*> get_players_at_node(int node);
 
 	//добавить игрока в игру, в случа неуспеха возвращается -1
-	int add_player(player* pl);
-	int add_player_to_node(player* pl, int node_num);
+	int add_player(player* pl, int color);
+	int add_player_to_node(player* pl, int node_num, int color);
 	//удаляет игрока из игры
 	int remove_player(player* pl);
 	int remove_player(int uid);
@@ -70,7 +74,10 @@ public:
 	int notify_players_move(int uid, int from, int to);
 	int notify_players_quit(int uid, int from);
 	int notify_players_join(player* pl);
+
+	//извлечь доступный цвет
+	int pop_available_color();
 protected:
 	virtual void output_node_row(node* _node, node* _left, node* _right, int row, vector<player*> pls);
-
+	virtual void set_available_colors();
 };

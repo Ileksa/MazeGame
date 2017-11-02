@@ -78,7 +78,6 @@ int send_command(SOCKET s, char* buf, int buf_size)
 
 DWORD WINAPI process_notifications(LPVOID data)
 {
-	wcout << L"Hello from second thread!" << endl;
 	SOCKET s = static_cast<notifications_data*>(data)->s;
 	game* g = static_cast<notifications_data*>(data)->g;
 
@@ -89,7 +88,7 @@ DWORD WINAPI process_notifications(LPVOID data)
 		res = get_command(s, buf, MSG_SIZE);
 		if (res < 0)
 			break;
-		system("cls");
+		//system("cls");
 
 		if (strncmp(buf, "MOVE ", COMMAND_LEN + 1) == 0)
 		{
@@ -107,12 +106,8 @@ DWORD WINAPI process_notifications(LPVOID data)
 			start = end + 1;
 			to = atoi(start);
 
-			//res = scanf(buf + COMMAND_LEN + 1, "%d %d %d", &uid, &from, &to);
-			//if (res < 0)
-		//		continue;
 			g->set_player_node(uid, to);
-			//g->get_node(from)->remove_player(uid);
-			//g->get_node(to)->add_player(uid);
+
 		}
 		else if (strncmp(buf, "QUIT ", COMMAND_LEN + 1) == 0)
 		{
@@ -123,8 +118,6 @@ DWORD WINAPI process_notifications(LPVOID data)
 			uid = atoi(start);
 
 			start = end + 1;
-			//end = strstr(start, " ");
-			//*end = '\0';
 			from = atoi(start);
 
 			g->remove_player(uid);
@@ -161,14 +154,17 @@ DWORD WINAPI process_notifications(LPVOID data)
 			pl->set_color(color);
 			g->add_player_to_node(pl, position);
 		}
+
+		COORD coord;
+		coord.X = 0;
+		coord.Y = 0;
+		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 		g->output_map();
 	}
 
-	wcout << L"[Second thread] Will delete objects" << endl;
 	delete g;
 	closesocket(s);
 	free(data);
-	wcout << L"[Second thread] I deleted objects" << endl;
 
 	return 0;
 }

@@ -5,6 +5,8 @@ game::game(int _level_size) {
 	//id = id;
 	level_size = _level_size;
 	max_players_count = STANDARD_PLAYERS_COUNT_ON_MAP;
+
+	set_available_colors();
 }
 game::~game() {}
 
@@ -76,6 +78,9 @@ void game::output_map()
 //соседи слева и справа даны для того, чтобы корректно отображать диагонали
 void game::output_node_row(node* _node, node* _left, node* _right, int row, vector<player*> pls)
 {
+	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hStdOut, (WORD)(White));
+
 	//_setmode(_fileno(stdout), _O_U16TEXT);
 	//_setmode(_fileno(stdin), _O_U16TEXT);
 	//_setmode(_fileno(stderr), _O_U16TEXT);
@@ -114,7 +119,52 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row, vect
 			wcout << L" ║";
 
 		if (pls.size() > 0)
-			wcout << L"  ***  ";
+		{
+			int size = pls.size();
+			switch (size) {
+			case 1:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  ***  ";
+				break;
+			case 2:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color())); //первая строка закрашивается цветом первого игрока
+				wcout << L"  ***  ";
+				break;
+			case 3:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color())); 
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*  ";
+				break;
+			case 4:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*  ";
+				break;
+			case 5:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*  ";
+				break;
+			case 6:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*  ";
+				break;
+			}
+			SetConsoleTextAttribute(hStdOut, (WORD)(White));
+		}
 		else
 			wcout << L"       ";
 
@@ -132,7 +182,46 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row, vect
 			wcout << L" ║";
 
 		if (pls.size() > 0)
-			wcout << L"  ***  ";
+		{
+			int size = pls.size();
+			switch (size) {
+			case 1:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  ***  ";
+				break;
+			case 2:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color())); //вторая строка закрашивается цветом второго игрока
+				wcout << L"  ***  ";
+				break;
+			case 3:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*  ";
+				break;
+			case 4:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L"   *   ";
+				break;
+			case 5:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L"  * ";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
+				wcout << L"*  ";
+				break;
+			case 6:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L"  *";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[5]->get_color()));
+				wcout << L"*  ";
+				break;
+			}
+			SetConsoleTextAttribute(hStdOut, (WORD)(White));
+		}
 		else
 			wcout << L"       ";
 
@@ -210,29 +299,40 @@ map<player*, node*>::iterator game::get_players_iterator_end() {
 }
 
 //добавить игрока в игру, в случа неуспеха возвращается -1, иначе - 0
-int game::add_player(player* pl)
+int game::add_player(player* pl, int color = -1)
 {
-	if (players.size() >= max_players_count)
-		return -1;
+	//TODO: добвить точки респауна
 
-	players.insert_or_assign(pl, get_node(0));
-
-	//TODO: добавить разные точки респауна игроков
-	return 0;
+	return add_player_to_node(pl, 0, color);
 }
 
-int game::add_player_to_node(player* pl, int node_num)
+int game::add_player_to_node(player* pl, int node_num, int color = -1)
 {
 	if (players.size() >= max_players_count)
 		return -1;
 
 	players.insert_or_assign(pl, get_node(node_num));
+
+	if (color <= 0)
+	{
+		auto color = pop_available_color();
+		pl->set_color(color);
+	}
+	else {
+		pl->set_color(color);
+		available_colors.erase();
+	}
 	return 0;
 }
 
 int game::remove_player(player* pl)
 {
+	closesocket(pl->get_socket_notifications());
+	pl->set_socket_notifications(-1);
+
 	players.erase(pl);
+	available_colors.push_back((ConsoleColor)pl->get_color());
+
 	return 0;
 }
 
@@ -246,10 +346,7 @@ int game::remove_player(int uid)
 	if (pl == nullptr)
 		return 0;
 
-	closesocket(pl->get_socket_notifications());
-	pl->set_socket_notifications(-1);
-
-	players.erase(pl);
+	remove_player(pl);
 	return 0;
 }
 
@@ -335,4 +432,15 @@ vector<player*> game::get_players_at_node(int nid)
 		if (it->second->get_id() == nid)
 			pls.push_back(it->first);
 	return pls;
+}
+
+void game::set_available_colors() {
+	for (int i = 2; i <= 14; i++)
+		available_colors.push_back((ConsoleColor)i);
+}
+
+int game::pop_available_color(){
+	auto back = available_colors.back();
+	available_colors.pop_back();
+	return back;
 }
