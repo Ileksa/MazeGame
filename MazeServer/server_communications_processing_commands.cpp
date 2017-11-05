@@ -33,7 +33,7 @@ int lsm_server::process_endg_message(SOCKET s, char* msg, int size, int* server_
 		int node_id = g->get_player_node(pl)->get_id();
 		g->remove_player(pl);
 		int index = get_index(g);
-		if (index > 0 && g->get_players_count() == 0)
+		if (index > DEFAULT_GAME_COUNT && g->get_players_count() == 0)
 		{
 			delete games[index];
 			games[index] = nullptr;
@@ -132,7 +132,7 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 
 	
 	char buf[256];
-	sprintf("OK 250 You added to game \"%s\".\r\n", game->get_game_name());
+	sprintf(buf, "OK 250 You added to game \"%s\".\r\n", game->get_game_name());
 	send_message(s, buf, strlen(buf));
 
 	//pl->set_color(game->pop_available_color());

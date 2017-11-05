@@ -370,15 +370,18 @@ int game::add_player_to_node(player* pl, int node_num, int color)
 
 	players.insert_or_assign(pl, get_node(node_num));
 
-	if (color <= 0)
+	if (pl->get_color() == -1)
 	{
-		auto color = pop_available_color();
-		pl->set_color(color);
-	}
-	else {
-		pl->set_color(color);
-		std::remove(available_colors.begin(), available_colors.end(), color);
-		//available_colors.erase(color);
+		if (color <= 0)
+		{
+			auto color = pop_available_color();
+			pl->set_color(color);
+		}
+		else {
+			pl->set_color(color);
+			std::remove(available_colors.begin(), available_colors.end(), color);
+			//available_colors.erase(color);
+		}
 	}
 	return 0;
 }
@@ -390,6 +393,7 @@ int game::remove_player(player* pl)
 
 	players.erase(pl);
 	available_colors.push_back((ConsoleColor)pl->get_color());
+	pl->set_color(-1);
 
 	return 0;
 }

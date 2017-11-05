@@ -157,14 +157,14 @@ error_end:
 void process_game_commands(SOCKET s, int uid, int start_node)
 {
 	char command;
-	char message[MSG_SIZE];
+	char message[MSG_SIZE + 1];
 
 	while (true)
 	{
 		command = _getch();
 		if (iswdigit(command))
 		{
-			memset(message, '\0', MSG_SIZE);
+			memset(message, '\0', MSG_SIZE + 1);
 			if (command == '2')
 				sprintf(message, "MOVE %s \r\n", "DOWN");
 			else if (command == '8')
@@ -189,7 +189,7 @@ void process_game_commands(SOCKET s, int uid, int start_node)
 		}
 		else if (command == 'q')
 		{
-			memset(message, '\0', MSG_SIZE);
+			memset(message, '\0', MSG_SIZE + 1);
 			sprintf(message, "ENDG\r\n");
 			send_command(s, message, strlen(message));
 			get_command(s, message, MSG_SIZE);
@@ -197,9 +197,38 @@ void process_game_commands(SOCKET s, int uid, int start_node)
 		}
 		else if (command == ' ')
 		{
-			memset(message, '\0', MSG_SIZE);
+			memset(message, '\0', MSG_SIZE + 1);
 			sprintf(message, "SHOT\r\n");
 			send_command(s, message, strlen(message));
 		}
 	}
+}
+
+
+int process_list_command(SOCKET s) {
+	char message[MSG_SIZE + 1];
+	memset(message, '\0', MSG_SIZE + 1);
+	sprintf(message, "LIST\r\n");
+	send_command(s, message, strlen(message));
+
+	int result = get_command(s, message, MSG_SIZE);
+	if (result < 0 || strncmp(message, "ER", 2) == 0)
+		return -1;
+
+	output_header_games_info();
+	int games_count = atoi(message + 7);
+	for (int i = 0; i < games_count; i++) {
+		char name[GAMENAME_LEN + 1];
+		int gid, count, max_count;
+
+		result = get_command(s, message, MSG_SIZE);
+		if (result < 0)
+			return -1;
+
+		istringstream iss(message);
+		iss >> gid >> count >> max_count >> name;
+		output_game_info(gid, count, max_count, name);
+	}
+	_getch();
+	return 0;
 }

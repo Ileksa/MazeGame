@@ -3,6 +3,7 @@
 
 #include "client_constants.h"
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include <algorithm>
 #include <conio.h>
@@ -29,13 +30,17 @@ int send_command(SOCKET s, char* buf, int buf_size);
 //набор функций вывода-------------------------------------------
 void output_header(char* nickname, int uid);
 void output_menu();
+void output_header_games_info();
+void output_game_info(int uid, int count, int max_count, char* name);
+void output_delimiter_game_info();
 
 //обработка команд-----------------------------------------------
 //start [num] -> будет посылаться команда STAR [num]; в случае ошибки возвращает -1, в случае успеха - 0
 int process_start_command(SOCKET s, wstring message, int uid);
 //осуществляет обработку команд, вводимых с клавиатуры
 void process_game_commands(SOCKET s, int uid, int start_node);
-
+//возвращает -1 в случае ошибки
+int process_list_command(SOCKET s);
 
 //работа второго потока ---------------------------------------------------
 //отвечает за закрытие переданного сокета!

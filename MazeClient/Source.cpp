@@ -99,6 +99,9 @@ int main() {
 		} else if (str.substr(0, 6).compare(L"start ") == 0)	{
 			process_start_command(s, str, uid);
 		}
+		else if (str.compare(L"list") == 0) {
+			process_list_command(s);
+		}
 	}
 
 
