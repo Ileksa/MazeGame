@@ -2,13 +2,24 @@
 
 
 game::game(int _level_size) {
-	//id = id;
 	level_size = _level_size;
 	max_players_count = STANDARD_PLAYERS_COUNT_ON_MAP;
 
 	set_available_colors();
+	name = (char*)malloc(sizeof(char)*(GAMENAME_LEN+1));
+	memset(name, '\0', GAMENAME_LEN + 1);
 }
-game::~game() {}
+game::~game() {
+	free(name);
+}
+
+void game::set_game_name(char* _name) {
+	strncpy(name, _name, GAMENAME_LEN);
+}
+
+char* game::get_game_name() {
+	return name;
+}
 
 //int game::get_id() {
 //	return id;
@@ -286,9 +297,55 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row, vect
 	}
 }
 
+void game::output_stat() {
+	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hStdOut, (WORD)(White));
+
+	wcout << L"┌";
+	for (int i = 0; i < 5; i++)
+		wcout << L"┄";
+	wcout << L"┬";
+	for (int i = 0; i < NICKNAME_LEN + 1; i++)
+		wcout << L"┄";
+	wcout << L"┬";
+	for (int i = 0; i < 5; i++)
+		wcout << L"┄";
+	wcout << L"┐" << endl;
+
+	for (auto it = players.begin(); it != players.end(); ++it) {
+		wcout << L"┊";
+		wcout.width(5);
+		wcout << it->first->get_uid();
+		wcout << L"┊";
+		SetConsoleTextAttribute(hStdOut, (WORD)(it->first->get_color()));
+		wcout.width(NICKNAME_LEN + 1);
+		wcout << it->first->get_name();
+		SetConsoleTextAttribute(hStdOut, (WORD)(White));
+		wcout << L"┊";
+		wcout.width(5);
+		wcout << it->first->get_points();
+		wcout << L"┊" << endl;
+	}
+	wcout << L"└";
+	for (int i = 0; i < 5; i++)
+		wcout << L"┄";
+	wcout << L"┴";
+	for (int i = 0; i < NICKNAME_LEN + 1; i++)
+		wcout << L"┄";
+	wcout << L"┴";
+	for (int i = 0; i < 5; i++)
+		wcout << L"┄";
+	wcout << L"┘" << endl;
+}
+
+
 //получить число игроков на карте
 int game::get_players_count() {
 	return players.size();
+}
+
+int game::get_max_players_count() {
+	return max_players_count;
 }
 
 map<player*, node*>::iterator game::get_players_iterator_begin(){
@@ -299,14 +356,14 @@ map<player*, node*>::iterator game::get_players_iterator_end() {
 }
 
 //добавить игрока в игру, в случа неуспеха возвращается -1, иначе - 0
-int game::add_player(player* pl, int color = -1)
+int game::add_player(player* pl, int color)
 {
 	//TODO: добвить точки респауна
 
 	return add_player_to_node(pl, 0, color);
 }
 
-int game::add_player_to_node(player* pl, int node_num, int color = -1)
+int game::add_player_to_node(player* pl, int node_num, int color)
 {
 	if (players.size() >= max_players_count)
 		return -1;
@@ -320,7 +377,8 @@ int game::add_player_to_node(player* pl, int node_num, int color = -1)
 	}
 	else {
 		pl->set_color(color);
-		available_colors.erase();
+		std::remove(available_colors.begin(), available_colors.end(), color);
+		//available_colors.erase(color);
 	}
 	return 0;
 }
@@ -417,10 +475,23 @@ int game::notify_players_join(player* pl)
 
 	int uid = pl->get_uid();
 	node* n = players[pl];
-	sprintf(message, "JOIN %d %s %d %d\r\n", uid, pl->get_name(), pl->get_color(), n->get_id());
+	sprintf(message, "JOIN %d %s %d %d %d\r\n", uid, pl->get_name(), pl->get_color(), n->get_id(), pl->get_points());
 	for (auto it = players.begin(); it != players.end(); ++it)
 		if (it->first->get_uid() != uid) //уведомление не придет самому игроку
 			send(it->first->get_socket_notifications(), message, strlen(message), 0);
+	return 0;
+}
+
+int game::notify_players_pnts(player* pl)
+{
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+
+	int uid = pl->get_uid();
+	node* n = players[pl];
+	sprintf(message, "PNTS %d %d\r\n", uid, pl->get_points());
+	for (auto it = players.begin(); it != players.end(); ++it)
+		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 	return 0;
 }
 

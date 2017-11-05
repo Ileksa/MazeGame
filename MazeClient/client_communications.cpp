@@ -124,8 +124,8 @@ DWORD WINAPI process_notifications(LPVOID data)
 		}
 		else if (strncmp(buf, "JOIN ", COMMAND_LEN + 1) == 0)
 		{
-			//UID name color position
-			int uid, color, position;
+			//UID name color position points
+			int uid, color, position, points;
 			char name[NICKNAME_LEN];
 			memset(name, '\0', NICKNAME_LEN);
 
@@ -145,14 +145,37 @@ DWORD WINAPI process_notifications(LPVOID data)
 			color = atoi(start);
 
 			start = end + 1;
+			end = strstr(start, " ");
+			*end = '\0';
 			position = atoi(start);
 
+			start = end + 1;
+			points = atoi(start);
 
 
 			player* pl = new player(name);
 			pl->set_uid(uid);
 			pl->set_color(color);
+			pl->set_points(points);
 			g->add_player_to_node(pl, position);
+		}
+		else if (strncmp(buf, "PNTS ", COMMAND_LEN + 1) == 0)
+		{
+			int uid, points;
+			char* start = buf + COMMAND_LEN + 1;
+			char* end = strstr(buf + COMMAND_LEN + 1, " ");
+			*end = '\0';
+			uid = atoi(start);
+
+			start = end + 1;
+			points = atoi(start);
+			for (auto it = g->get_players_iterator_begin(); it != g->get_players_iterator_end(); ++it) {
+				if (it->first->get_uid() == uid)
+				{
+					it->first->set_points(points);
+					break;
+				}
+			}
 		}
 
 		COORD coord;
@@ -160,6 +183,7 @@ DWORD WINAPI process_notifications(LPVOID data)
 		coord.Y = 0;
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 		g->output_map();
+		g->output_stat();
 	}
 
 	delete g;

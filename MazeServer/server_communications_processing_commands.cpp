@@ -15,7 +15,7 @@ player* lsm_server::process_helo_message(SOCKET s, char* msg, int size, int* ser
 		return nullptr;
 	}
 	else {
-		char buf[NICKNAME_LEN + 20];
+		char buf[NICKNAME_LEN + 100];
 
 		memset(buf, '\0', sizeof(buf));
 		sprintf(buf, "OK 220 Welcome, %s! Your UID is %d.\r\n", pl->get_name(), uid);
@@ -78,13 +78,34 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 		return nullptr;
 	}
 
-	//TODO: подбор игры
-
-	game* game = games[0];
-	int result = game->add_player(pl);
-	if (result < 0) {
-		send_error(s, "ER 403 Game is full. Please try later or choose another game.\r\n");
-		return nullptr;
+	game* game = nullptr;
+	if (number == 0)
+	{
+		for (int i = 1; i < GAMES_COUNT; i++)
+			if (games[i] != nullptr && games[i]->get_players_count() < games[i]->get_max_players_count()){
+				int result = games[i]->add_player(pl);
+				if (result >= 0) {
+					game = games[i];
+					break;
+				}
+			}
+		if (game == nullptr) {
+			send_error(s, "ER 405 All games is full. Please try later or create new game.\r\n");
+			return nullptr;
+		}
+	}
+	else
+	{
+		if (games[number] == nullptr) {
+			send_error(s, "ER 406 Game doesn't exist. Please choose another game.\r\n");
+			return nullptr;
+		}
+		int result = games[number]->add_player(pl);
+		if (result < 0) {
+			send_error(s, "ER 403 Game is full. Please try later or choose another game.\r\n");
+			return nullptr;
+		}
+		game = games[number];
 	}
 
 	SOCKET s_notifications = socket(AF_INET, SOCK_STREAM, 0);
@@ -101,6 +122,7 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 	connect(s_notifications, (SOCKADDR*)&addr, sizeof(addr));
 	if (WSAGetLastError() != 0) {
 		send_error(s, "ER 510 Port 1007 is not available for notifications.\r\n");
+		game->remove_player(pl);
 		return nullptr;
 	}
 
@@ -109,7 +131,8 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 	
 
 	
-	char buf[100] = "OK 250 You added to game.\r\n";
+	char buf[256];
+	sprintf("OK 250 You added to game \"%s\".\r\n", game->get_game_name());
 	send_message(s, buf, strlen(buf));
 
 	//pl->set_color(game->pop_available_color());
@@ -134,7 +157,8 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 		for(auto it = game->get_players_iterator_begin(); 
 			it !=  game->get_players_iterator_end(); ++it)
 		{
-			sprintf(buf, "%d %s %d %d\r\n", it->first->get_uid(), it->first->get_name(), it->first->get_color(), it->second->get_id());
+			sprintf(buf, "%d %s %d %d %d\r\n", it->first->get_uid(), it->first->get_name(), 
+				it->first->get_color(), it->second->get_id(), it->first->get_points());
 			send_message(s, buf, strlen(buf));
 
 		}
@@ -142,6 +166,7 @@ game* lsm_server::process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg,
 
 	*server_state = STATE_IN_GAME;
 	game->notify_players_join(pl);
+
 	return game;
 }
 
@@ -230,7 +255,26 @@ int lsm_server::process_shot_message(SOCKET s, char* msg, int size, int* server_
 		return 0;
 
 	g->set_player_node(shooted_player, 0);
+	pl->add_point();
 
 	g->notify_players_move(shooted_player->get_uid(), n->get_id(), 0);
+	g->notify_players_pnts(pl);
+	return 0;
+}
+
+int lsm_server::process_list_message(SOCKET s, char* msg, int size, int* server_state, player* pl) {
+
+	char message[MSG_SIZE];
+	memset(message, '\0', MSG_SIZE);
+	sprintf(message, "OK 246 %d\r\n", games_count);
+	send_message(s, message, strlen(message));
+
+	for (int i = 1; i < GAMES_COUNT; i++) {
+		if (games[i] != nullptr) {
+			sprintf(message, "%d %d %d %s\r\n", i, games[i]->get_players_count(),
+				games[i]->get_max_players_count(), games[i]->get_game_name());
+			send_message(s, message, strlen(message));
+		}
+	}
 	return 0;
 }

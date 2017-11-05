@@ -18,6 +18,7 @@ class player
 	SOCKET socket_notifications;
 	char* name;
 	int color;
+	int points;
 public:
 	player(char* _name);
 	~player();
@@ -28,6 +29,10 @@ public:
 
 	int get_color();
 	void set_color(int color);
+	
+	void add_point();
+	void set_points(int value);
+	int get_points();
 
 	//установить или получить сокет для уведомлений
 	void set_socket_notifications(SOCKET s);

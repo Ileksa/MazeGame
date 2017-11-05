@@ -31,14 +31,16 @@ class lsm_server
 
 	//все игры сервера
 	game** games;
-	int games_count;
+	int games_count; //фактическое число игр на сервере
 
 	//добавляет игрока в таблицу игроков и возвращает его uid  в случае удачи, если неуспешно - -1
 	int add_player(player* pl);
 	void remove_player(player* pl);
 	
-	//метод, инициализирующий карту по умолчанию
-	game* initialize_default_game();
+	//метод, инициализирующий карты по умолчанию
+	void initialize_default_games();
+	game* initialize_game_simple();
+	game* initialize_game_tower();
 	//получить индекс игры в массиве игр, возвращает -1 в случае неудачи
 	int get_index(game* g);
 
@@ -69,6 +71,8 @@ public:
 	player* process_helo_message(SOCKET s, char* msg, int size, int* server_state);
 	//обрабатывает команду QUIT и возвращает -1, если не удалось отсоединиться
 	int process_quit_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
+	//обрабатывает команду LIST получения списка доступных карт
+	int process_list_message(SOCKET s, char* msg, int size, int* server_state, player* pl);
 	//обрабатывает команду STAR и возвращает game в случае успеха, иначе - nullptr
 	game* process_star_message(SOCKET s, sockaddr_in tcpaddr, char* msg, int size, int* server_state, player* pl);
 	//прекращает текущую игру и возвращает -1, если удалось отсоединить игрока от игры

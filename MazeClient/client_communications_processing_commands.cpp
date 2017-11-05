@@ -100,21 +100,23 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	sscanf(buf, "%s %d", intermediate_buf, &players_count);
 	for (int i = 0; i < players_count; i++)
 	{
-		int id, color, position;
+		int id, color, position, points;
 		char name[NICKNAME_LEN];
 		result = get_command(s, buf, MSG_SIZE);
 		if (result < 0)
 			goto connection_error;
-		sscanf(buf, "%d %s %d %d", &id, name, &color, &position);
+		sscanf(buf, "%d %s %d %d %d", &id, name, &color, &position, &points);
 		player* pl = new player(name);
 		pl->set_uid(id);
 		pl->set_color(color);
+		pl->set_points(points);
 		g->add_player_to_node(pl, position, color);
 
 		if (id == uid)
 			start_position = position;
 	}
 	g->output_map();
+	g->output_stat();
 
 	notifications_data* data = (notifications_data*)malloc(sizeof(notifications_data));
 	data->s = fd;

@@ -6,6 +6,7 @@ player::player(char* _name) {
 
 	color = 1;
 	socket_notifications = -1;
+	set_points(0);
 	//free(name);
 }
 
@@ -38,4 +39,16 @@ void player::set_socket_notifications(SOCKET s) {
 }
 SOCKET player::get_socket_notifications() {
 	return socket_notifications;
+}
+
+void player::add_point() {
+	points++;
+}
+
+void player::set_points(int value) {
+	points = value;
+}
+
+int player::get_points() {
+	return points;
 }

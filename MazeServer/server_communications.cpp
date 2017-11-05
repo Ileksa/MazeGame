@@ -27,12 +27,12 @@ lsm_server::lsm_server(int port)
 	for (int i = 0; i < PLAYERS_COUNT; i++)
 		players[i] = nullptr;
 
-	games_count = GAMES_COUNT;
-	games = new game*[games_count];
+	games_count = 0;
+	games = new game*[GAMES_COUNT];
 	for (int i = 0; i < GAMES_COUNT; i++)
 		games[i] = nullptr;
 
-	games[0] = initialize_default_game();
+	initialize_default_games();
 }
 
 
@@ -138,6 +138,9 @@ DWORD WINAPI lsm_server::client_communication(LPVOID _data)
 			}
 			else if (strncmp(message, "STAR 0", COMMAND_LEN + 1) == 0) {
 				g = process_star_message(s, static_cast<client_communication_data*>(data)->tcpaddr, message, result, &state, pl);
+			}
+			else if (strncmp(message, "LIST", COMMAND_LEN) == 0) {
+				process_list_message(s, message, result, &state, pl);
 			}
 			else
 				send_error(s, "ER 581 Invalid command.\r\n");
@@ -265,8 +268,18 @@ int lsm_server::get_index(game* g)
 }
 
 
-game* lsm_server::initialize_default_game()
+void lsm_server::initialize_default_games()
 {
+	game* g = initialize_game_simple();
+	games[1] = g;
+	games_count++;
+
+	g = initialize_game_tower();
+	games[2] = g;
+	games_count++;
+}
+
+game* lsm_server::initialize_game_simple() {
 	game* g = new game(3);
 
 	g->add_node(new node(0, -1, 3, -1, -1, -1, -1, -1, 4));
@@ -282,5 +295,64 @@ game* lsm_server::initialize_default_game()
 	g->add_node(new node(10, -1, -1, 9, 11));
 	g->add_node(new node(11, 8, -1, 10, -1, 7));
 
+	g->set_game_name("Simple");
+	return g;
+}
+game* lsm_server::initialize_game_tower() {
+	game* g = new game(8);
+
+	g->add_node(new node(0, -1, 8, -1, 1));
+	g->add_node(new node(1, -1, 9, 0, 2));
+	g->add_node(new node(2, -1, -1, 1, 3, -1, -1, 9, 11));
+	g->add_node(new node(3, -1, -1, 2, 4));
+	g->add_node(new node(4, -1, -1, 3, 5));
+	g->add_node(new node(5, -1, -1, 4, 6, -1, -1, 12, 14));
+	g->add_node(new node(6, -1, -1, 5, 7));
+	g->add_node(new node(7, -1, 15, 6));
+	g->add_node(new node(8, 0, -1, -1, 9));
+	g->add_node(new node(9, 1, 17, 8, -1, -1, 2));
+	g->add_node(new node(10, -1, -1, -1, 11, -1, -1, 17));
+	g->add_node(new node(11, -1, -1, 10, 12, 2, -1, 18));
+	g->add_node(new node(12, -1, -1, 11, 13, -1, 5, -1, 21));
+	g->add_node(new node(13, -1, -1, 12, -1, -1, -1, -1, 22));
+	g->add_node(new node(14, -1, 22, -1, 15, 5, -1, -1));
+	g->add_node(new node(15, 7, 23, 14));
+	g->add_node(new node(16, -1, 24, -1, 17));
+	g->add_node(new node(17, 9, 25, 16, -1, -1, 10));
+	g->add_node(new node(18, -1, 26, -1, 19, -1, 11));
+	g->add_node(new node(19, -1, -1, 18, 20));
+	g->add_node(new node(20, -1, -1, 19, 21));
+	g->add_node(new node(21, -1, 29, 20, -1, 12));
+	g->add_node(new node(22, 14, 30, -1, -1, 13));
+	g->add_node(new node(23, 15, 31));
+
+	g->add_node(new node(24, 16, -1, -1, 25));
+	g->add_node(new node(25, 17, -1, 24, -1, -1, -1, -1, 34));
+	g->add_node(new node(26, 18, -1, -1, 27, -1, -1, -1, 35));
+	g->add_node(new node(27, -1, -1, 26, 28));
+	g->add_node(new node(28, -1, -1, 27, 29));
+	g->add_node(new node(29, 21, -1, 28, -1, -1, -1, 36));
+	g->add_node(new node(30, 22, -1, -1, 31, -1, -1, 37));
+	g->add_node(new node(31, 23, 39, 30, -1, -1, -1, 38));
+
+	g->add_node(new node(32, -1, 40, -1, 33));
+	g->add_node(new node(33, -1, -1, 32, -1, -1, -1, -1, 42));
+	g->add_node(new node(34, -1, -1, -1, 35, 25));
+	g->add_node(new node(35, -1, -1, 34, 36, 26, -1, 42, 44));
+	g->add_node(new node(36, -1, -1, 35, 37, -1, 29));
+	g->add_node(new node(37, -1, -1, 36, -1, -1, 30, 44));
+	g->add_node(new node(38, -1, 46, -1, -1, -1, 31));
+	g->add_node(new node(39, 31, 47));
+
+	g->add_node(new node(40, 32, -1, -1, 41));
+	g->add_node(new node(41, -1, -1, 40, 42));
+	g->add_node(new node(42, -1, -1, 41, 43, 33, 35));
+	g->add_node(new node(43, -1, -1, 42, 44));
+	g->add_node(new node(44, -1, -1, 43, 45, 35, 37));
+	g->add_node(new node(45, -1, -1, 44, 46));
+	g->add_node(new node(46, 38, -1, 45, 47));
+	g->add_node(new node(47, 39, -1, 46));
+
+	g->set_game_name("Tower");
 	return g;
 }

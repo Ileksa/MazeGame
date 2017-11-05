@@ -6,6 +6,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <iostream>
 #include <io.h>
 #include <fcntl.h>
@@ -15,8 +16,8 @@ using namespace std;
 
 class game
 {
-	//номер карты
-	//int id;
+	//название карты
+	char* name;
 	//список узлов
 	vector<node*> nodes;
 	//число узлов на одном уровне карты
@@ -33,6 +34,8 @@ class game
 public:
 	game(int _level_size);
 	virtual ~game();
+	void set_game_name(char* _name);
+	char* get_game_name();
 
 	//int get_id();
 	int get_level_size();
@@ -46,6 +49,7 @@ public:
 
 	//получить число игроков на карте
 	int get_players_count();
+	int get_max_players_count();
 	//получить игрока по индексу
 	map<player*, node*>::iterator get_players_iterator_begin();
 	map<player*, node*>::iterator get_players_iterator_end();
@@ -56,8 +60,8 @@ public:
 	vector<player*> get_players_at_node(int node);
 
 	//добавить игрока в игру, в случа неуспеха возвращается -1
-	int add_player(player* pl, int color);
-	int add_player_to_node(player* pl, int node_num, int color);
+	int add_player(player* pl, int color = -1);
+	int add_player_to_node(player* pl, int node_num, int color = -1);
 	//удаляет игрока из игры
 	int remove_player(player* pl);
 	int remove_player(int uid);
@@ -68,12 +72,13 @@ public:
 
 
 	virtual void output_map();
-	//отображает один из пяти рядов комнаты (0-4); ширина - 11 ячеек
+	virtual void output_stat();
 
 	//уведомляет других игроков о перемещении игрока с заданными uid с узла from к узлу to
 	int notify_players_move(int uid, int from, int to);
 	int notify_players_quit(int uid, int from);
 	int notify_players_join(player* pl);
+	int notify_players_pnts(player* pl);
 
 	//извлечь доступный цвет
 	int pop_available_color();
