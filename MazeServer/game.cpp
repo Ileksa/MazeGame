@@ -6,7 +6,7 @@ game::game(int _level_size) {
 	max_players_count = STANDARD_PLAYERS_COUNT_ON_MAP;
 
 	set_available_colors();
-	name = (char*)malloc(sizeof(char)*(GAMENAME_LEN+1));
+	name = (char*)malloc(sizeof(char)*(GAMENAME_LEN + 1));
 	memset(name, '\0', GAMENAME_LEN + 1);
 }
 game::~game() {
@@ -60,7 +60,7 @@ void game::output_map()
 			for (int j = 0; j < level_size; j++) {
 				if (j == 0) {
 					if (level_size > 1) {
-						output_node_row(get_node(i*level_size + j), nullptr, get_node(i*level_size + j + 1), k, 
+						output_node_row(get_node(i*level_size + j), nullptr, get_node(i*level_size + j + 1), k,
 							get_players_at_node(i*level_size + j));
 					}
 					else {
@@ -68,7 +68,7 @@ void game::output_map()
 					}
 				}
 				else if (j == level_size - 1) {
-					output_node_row(get_node(i*level_size + j), get_node(i*level_size + j - 1), nullptr, k, 
+					output_node_row(get_node(i*level_size + j), get_node(i*level_size + j - 1), nullptr, k,
 						get_players_at_node(i*level_size + j));
 				}
 				else {
@@ -125,121 +125,30 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row, vect
 
 	case 1:
 		if (_node->get_left() != -1)
-			wcout << L"═╝";
+			wcout << L"═╝  ";
 		else
-			wcout << L" ║";
+			wcout << L" ║  ";
 
-		if (pls.size() > 0)
-		{
-			int size = pls.size();
-			switch (size) {
-			case 1:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  ***  ";
-				break;
-			case 2:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color())); //первая строка закрашивается цветом первого игрока
-				wcout << L"  ***  ";
-				break;
-			case 3:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color())); 
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
-				wcout << L"*  ";
-				break;
-			case 4:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
-				wcout << L"*  ";
-				break;
-			case 5:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
-				wcout << L"*  ";
-				break;
-			case 6:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
-				wcout << L"*  ";
-				break;
-			}
-			SetConsoleTextAttribute(hStdOut, (WORD)(White));
-		}
-		else
-			wcout << L"       ";
+		output_players_at_node_one_row(hStdOut, _node->get_id(), true);
 
 		if (_node->get_right() != -1)
-			wcout << L"╚═";
+			wcout << L"  ╚═";
 		else
-			wcout << L"║ ";
+			wcout << L"  ║ ";
 
-		wcout << L"";
 		break;
 	case 2:
 		if (_node->get_left() != -1)
-			wcout << L"═╗";
+			wcout << L"═╗  ";
 		else
-			wcout << L" ║";
+			wcout << L" ║  ";
 
-		if (pls.size() > 0)
-		{
-			int size = pls.size();
-			switch (size) {
-			case 1:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  ***  ";
-				break;
-			case 2:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color())); //вторая строка закрашивается цветом второго игрока
-				wcout << L"  ***  ";
-				break;
-			case 3:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
-				wcout << L"*  ";
-				break;
-			case 4:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
-				wcout << L"   *   ";
-				break;
-			case 5:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
-				wcout << L"  * ";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
-				wcout << L"*  ";
-				break;
-			case 6:
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
-				wcout << L"  *";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
-				wcout << L"*";
-				SetConsoleTextAttribute(hStdOut, (WORD)(pls[5]->get_color()));
-				wcout << L"*  ";
-				break;
-			}
-			SetConsoleTextAttribute(hStdOut, (WORD)(White));
-		}
-		else
-			wcout << L"       ";
+		output_players_at_node_one_row(hStdOut, _node->get_id(), false);
 
 		if (_node->get_right() != -1)
-			wcout << L"╔═";
+			wcout << L"  ╔═";
 		else
-			wcout << L"║ ";
+			wcout << L"  ║ ";
 		break;
 
 	case 3:
@@ -297,9 +206,139 @@ void game::output_node_row(node* _node, node* _left, node* _right, int row, vect
 	}
 }
 
+void game::output_players_at_node_one_row(HANDLE hStdOut, int node, bool is_upper_row) {
+	vector<player*> pls = get_players_at_node(node);
+
+	switch (is_upper_row) {
+	case true: {
+		if (pls.size() > 0)
+		{
+			int size = pls.size();
+			switch (size) {
+			case 1:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"***";
+				break;
+			case 2:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color())); //первая строка закрашивается цветом первого игрока
+				wcout << L"***";
+				break;
+			case 3:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*";
+				break;
+			case 4:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*";
+				break;
+			case 5:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*";
+				break;
+			case 6:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*";
+				break;
+			}
+			SetConsoleTextAttribute(hStdOut, (WORD)(White));
+		}
+		else
+			wcout << L"   ";
+		break;
+	}
+
+	case false: {
+		if (pls.size() > 0)
+		{
+			int size = pls.size();
+			switch (size) {
+			case 1:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"***";
+				break;
+			case 2:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color())); //вторая строка закрашивается цветом второго игрока
+				wcout << L"***";
+				break;
+			case 3:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[0]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[1]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[2]->get_color()));
+				wcout << L"*";
+				break;
+			case 4:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L" * ";
+				break;
+			case 5:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L"* ";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
+				wcout << L"*";
+				break;
+			case 6:
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[3]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[4]->get_color()));
+				wcout << L"*";
+				SetConsoleTextAttribute(hStdOut, (WORD)(pls[5]->get_color()));
+				wcout << L"*";
+				break;
+			}
+			SetConsoleTextAttribute(hStdOut, (WORD)(White));
+		}
+		else
+			wcout << L"   ";
+		break;
+	}
+	}
+}
+
+
+void game::output_players_at_node(int node_num, int x, int y) {
+	int row = node_num / get_level_size();
+	int column = node_num % get_level_size();
+
+	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD coord;
+	coord.X = x + 11 * column + 4; //9 - ширина одного узла
+	coord.Y = y + 5 * row + 1; // 4 - высота одного узла
+
+	SetConsoleCursorPosition(hStdOut, coord);
+	output_players_at_node_one_row(hStdOut, node_num, true);
+
+	coord.Y++;
+	SetConsoleCursorPosition(hStdOut, coord);
+	output_players_at_node_one_row(hStdOut, node_num, true);
+
+}
+
 void game::output_stat() {
 	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hStdOut, (WORD)(White));
+
+	COORD coord;
+	coord.X = 0; //9 - ширина одного узла
+	coord.Y = (get_nodes_count()/get_level_size())*5; // 4 - высота одного узла
+	SetConsoleCursorPosition(hStdOut, coord);
 
 	wcout << L"┌";
 	for (int i = 0; i < 5; i++)
@@ -348,7 +387,7 @@ int game::get_max_players_count() {
 	return max_players_count;
 }
 
-map<player*, node*>::iterator game::get_players_iterator_begin(){
+map<player*, node*>::iterator game::get_players_iterator_begin() {
 	return players.begin();
 }
 map<player*, node*>::iterator game::get_players_iterator_end() {
@@ -420,7 +459,7 @@ int game::set_player_node(player* pl, int new_node)
 	try {
 		players[pl] = get_node(new_node);
 	}
-	catch(exception &e)
+	catch (exception &e)
 	{
 		return -1;
 	}
@@ -455,7 +494,7 @@ int game::notify_players_move(int uid, int from, int to)
 
 	for (auto it = players.begin(); it != players.end(); ++it)
 		send(it->first->get_socket_notifications(), message, strlen(message), 0);
-	
+
 	return 0;
 }
 
@@ -514,7 +553,7 @@ void game::set_available_colors() {
 		available_colors.push_back((ConsoleColor)i);
 }
 
-int game::pop_available_color(){
+int game::pop_available_color() {
 	auto back = available_colors.back();
 	available_colors.pop_back();
 	return back;

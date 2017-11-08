@@ -73,6 +73,9 @@ public:
 
 	virtual void output_map();
 	virtual void output_stat();
+	//отображает игрока в заданном узле при условии, что левый верхний угол карты задан точками (x,y)
+	virtual void output_players_at_node(int node_num, int x = 0, int y = 0);
+
 
 	//уведомляет других игроков о перемещении игрока с заданными uid с узла from к узлу to
 	int notify_players_move(int uid, int from, int to);
@@ -83,6 +86,9 @@ public:
 	//извлечь доступный цвет
 	int pop_available_color();
 protected:
+	//отображает один из двух рядов игроков в узле
+	virtual void output_players_at_node_one_row(HANDLE hStdOut, int node, bool is_upper_row);
+
 	virtual void output_node_row(node* _node, node* _left, node* _right, int row, vector<player*> pls);
 	virtual void set_available_colors();
 };

@@ -107,6 +107,8 @@ DWORD WINAPI process_notifications(LPVOID data)
 			to = atoi(start);
 
 			g->set_player_node(uid, to);
+			g->output_players_at_node(from, 0, 0);
+			g->output_players_at_node(to, 0, 0);
 
 		}
 		else if (strncmp(buf, "QUIT ", COMMAND_LEN + 1) == 0)
@@ -121,6 +123,7 @@ DWORD WINAPI process_notifications(LPVOID data)
 			from = atoi(start);
 
 			g->remove_player(uid);
+			system("cls");
 		}
 		else if (strncmp(buf, "JOIN ", COMMAND_LEN + 1) == 0)
 		{
@@ -176,14 +179,15 @@ DWORD WINAPI process_notifications(LPVOID data)
 					break;
 				}
 			}
+			g->output_stat();
 		}
 
 		COORD coord;
 		coord.X = 0;
 		coord.Y = 0;
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-		g->output_map();
-		g->output_stat();
+		//g->output_map();
+		//g->output_stat();
 	}
 
 	delete g;

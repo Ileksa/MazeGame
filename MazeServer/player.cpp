@@ -4,7 +4,7 @@ player::player(char* _name) {
 	strncpy(name, _name, NICKNAME_LEN + 1);
 	name[NICKNAME_LEN] = '\0';
 
-	color = 1;
+	color = -1;
 	socket_notifications = -1;
 	set_points(0);
 	//free(name);
