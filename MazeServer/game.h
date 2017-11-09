@@ -40,8 +40,8 @@ public:
 	//int get_id();
 	int get_level_size();
 	void set_level_size(int size);
-	//добавляет узел в карту
-	void add_node(node* _node);
+	//добавляет узел в карту; невозможно добавить узел на карту, в которой уже есть игроки
+	int add_node(node* _node);
 	//получить узел по индексу, нумерация начинается с нуля
 	node* get_node(int index);
 	//получить число узлов в карте

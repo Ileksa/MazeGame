@@ -2,6 +2,7 @@
 
 int process_start_command(SOCKET s, wstring message, int uid)
 {
+	int res;
 	//подготовка сокета----------------------------------------------------
 	SOCKET s_notifications = socket(AF_INET, SOCK_STREAM, 0);
 	if (WSAGetLastError() != 0) {
@@ -25,7 +26,6 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	listen(s_notifications, 5);
 
 	//подготовка команды --------------------------------------
-	int result = 0;
 	system("cls");
 	int game_number;
 	try	{
@@ -46,19 +46,18 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	char buf[MSG_SIZE];
 	memset(buf, '\0', MSG_SIZE);
 	sprintf(buf, "STAR %d\r\n", game_number);
-	result = send_command(s, buf, strlen(buf));
-	if (result < 0)
-	{
-		wcout << L"Connection error" << endl;
+	res = send_command(s, buf, strlen(buf));
+	if (res < 0){
+		output_unexpected_error();
 		goto error_end;
 	}
 
 	
 	SOCKET fd = accept(s_notifications, (sockaddr*)&tcpaddr, &size);
 
-	result = get_command(s, buf, MSG_SIZE);
-	if (result < 0) {
-		wcout << L"Connection error" << endl;
+	res = get_command(s, buf, MSG_SIZE);
+	if (res < 0) {
+		output_unexpected_error();
 		closesocket(fd);
 		goto error_end;
 	}
@@ -72,9 +71,11 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	game* g = new game(1);
 
 	//считать карту------------------------------------------------------------------------------
-	result = get_command(s, buf, MSG_SIZE);
-	if (result < 0)
+	res = get_command(s, buf, MSG_SIZE);
+	if (res < 0) {
+		output_unexpected_error();
 		goto connection_error;
+	}
 
 	char intermediate_buf[MSG_SIZE];
 	int nodes_count, level_size;
@@ -82,17 +83,21 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	g->set_level_size(level_size);
 	for (int i = 0; i < nodes_count; i++) {
 		int num, up, down, left, right, up_left, up_right, down_left, down_right;
-		result = get_command(s, buf, MSG_SIZE);
-		if (result < 0)
+		res = get_command(s, buf, MSG_SIZE);
+		if (res < 0) {
+			output_unexpected_error();
 			goto connection_error;
+		}
 		sscanf(buf, "%d %d %d %d %d %d %d %d %d", &num, &up, &down, &left, &right, &up_left, &up_right, &down_left, &down_right);
 		g->add_node(new node(num, up, down, left, right, up_left, up_right, down_left, down_right));
 	}
 
 	//считать игроков -------------------------------------------------------------
-	result = get_command(s, buf, MSG_SIZE);
-	if (result < 0)
+	res = get_command(s, buf, MSG_SIZE);
+	if(res < 0) {
+		output_unexpected_error();
 		goto connection_error;
+	}
 
 	//считать игроков
 	int start_position;
@@ -102,9 +107,12 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	{
 		int id, color, position, points;
 		char name[NICKNAME_LEN];
-		result = get_command(s, buf, MSG_SIZE);
-		if (result < 0)
+		res = get_command(s, buf, MSG_SIZE);
+		if (res < 0) {
+			output_unexpected_error();
 			goto connection_error;
+		}
+
 		sscanf(buf, "%d %s %d %d %d", &id, name, &color, &position, &points);
 		player* pl = new player(name);
 		pl->set_uid(id);
@@ -124,10 +132,14 @@ int process_start_command(SOCKET s, wstring message, int uid)
 	if (CreateThread(NULL, 0, process_notifications, data, 0, NULL) == NULL) {
 		wcout << L"ER 401 Internal game error. Connection will be closed." << endl;
 		closesocket(fd);
-		goto error_end;
+		goto connection_error;
 	}
 
-	process_game_commands(s, uid, start_position);
+	res = process_game_commands(s, uid, start_position);
+	if (res < 0) {
+		goto connection_error;
+	}
+
 
 	closesocket(s_notifications);
 
@@ -141,7 +153,6 @@ int process_start_command(SOCKET s, wstring message, int uid)
 
 
 connection_error:
-	wcout << L"Connection error" << endl;
 	delete g;
 	memset(buf, '\0', MSG_SIZE);
 	strncpy(buf, "ENDG\r\n", MSG_SIZE);
@@ -149,13 +160,13 @@ connection_error:
 	get_command(s, buf, MSG_SIZE);
 error_end:
 	closesocket(s_notifications);
-	system("pause");
 	return -1;
 }
 
 
-void process_game_commands(SOCKET s, int uid, int start_node)
+int process_game_commands(SOCKET s, int uid, int start_node)
 {
+	int res;
 	char command;
 	char message[MSG_SIZE + 1];
 
@@ -184,36 +195,74 @@ void process_game_commands(SOCKET s, int uid, int start_node)
 			else
 				continue;
 
-			send_command(s, message, strlen(message));
-			get_command(s, message, MSG_SIZE);
+			res = send_command(s, message, strlen(message));
+			if (res < 0) {
+				output_unexpected_error();
+				return -1;
+			}
+
+			res = get_command(s, message, MSG_SIZE);
+			if (res < 0) {
+				output_unexpected_error();
+				return -1;
+			}
 		}
 		else if (command == 'q')
 		{
 			memset(message, '\0', MSG_SIZE + 1);
 			sprintf(message, "ENDG\r\n");
-			send_command(s, message, strlen(message));
-			get_command(s, message, MSG_SIZE);
-			return;
+			res = send_command(s, message, strlen(message));
+			if (res < 0) {
+				output_unexpected_error();
+				return -1;
+			}
+
+			res = get_command(s, message, MSG_SIZE);
+			if (res < 0) {
+				output_unexpected_error();
+				return -1;
+			}
+
+			break;
 		}
 		else if (command == ' ')
 		{
 			memset(message, '\0', MSG_SIZE + 1);
 			sprintf(message, "SHOT\r\n");
-			send_command(s, message, strlen(message));
+			res = send_command(s, message, strlen(message));
+			if (res < 0) {
+				output_unexpected_error();
+				return -1;
+			}
 		}
 	}
+	return 0;
 }
 
 
 int process_list_command(SOCKET s) {
+	int res;
 	char message[MSG_SIZE + 1];
 	memset(message, '\0', MSG_SIZE + 1);
 	sprintf(message, "LIST\r\n");
-	send_command(s, message, strlen(message));
-
-	int result = get_command(s, message, MSG_SIZE);
-	if (result < 0 || strncmp(message, "ER", 2) == 0)
+	res = send_command(s, message, strlen(message));
+	if (res < 0) {
+		output_unexpected_error();
 		return -1;
+	}
+
+	res = get_command(s, message, MSG_SIZE);
+	if (res < 0) {
+		output_unexpected_error();
+		return -1;
+	}
+
+	if (strncmp(message, "ER", 2) == 0)	{
+		wcout << L"Can not get list of games. Error message: " << endl;
+		wcout << message;
+		_getch();
+		return 0;
+	}
 
 	output_header_games_info();
 	int games_count = atoi(message + 7);
@@ -221,9 +270,11 @@ int process_list_command(SOCKET s) {
 		char name[GAMENAME_LEN + 1];
 		int gid, count, max_count;
 
-		result = get_command(s, message, MSG_SIZE);
-		if (result < 0)
+		res = get_command(s, message, MSG_SIZE);
+		if (res < 0) {
+			output_unexpected_error();
 			return -1;
+		}
 
 		istringstream iss(message);
 		iss >> gid >> count >> max_count >> name;

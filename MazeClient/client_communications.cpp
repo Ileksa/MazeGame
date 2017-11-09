@@ -124,6 +124,9 @@ DWORD WINAPI process_notifications(LPVOID data)
 
 			g->remove_player(uid);
 			system("cls");
+			g->output_map();
+			g->output_stat();
+
 		}
 		else if (strncmp(buf, "JOIN ", COMMAND_LEN + 1) == 0)
 		{
@@ -161,6 +164,8 @@ DWORD WINAPI process_notifications(LPVOID data)
 			pl->set_color(color);
 			pl->set_points(points);
 			g->add_player_to_node(pl, position);
+
+			g->output_players_at_node(position, 0, 0);
 		}
 		else if (strncmp(buf, "PNTS ", COMMAND_LEN + 1) == 0)
 		{
@@ -190,7 +195,7 @@ DWORD WINAPI process_notifications(LPVOID data)
 		//g->output_stat();
 	}
 
-	delete g;
+	//delete g;
 	closesocket(s);
 	free(data);
 

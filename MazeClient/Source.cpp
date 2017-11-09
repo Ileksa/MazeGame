@@ -97,10 +97,14 @@ int main() {
 		if (str.compare(L"quit") == 0) {
 			goto end_of_the_program;
 		} else if (str.substr(0, 6).compare(L"start ") == 0)	{
-			process_start_command(s, str, uid);
+			int res = process_start_command(s, str, uid);
+			if (res < 0)
+				goto end_of_the_program;
 		}
 		else if (str.compare(L"list") == 0) {
-			process_list_command(s);
+			int res = process_list_command(s);
+			if (res < 0)
+				goto end_of_the_program;
 		}
 	}
 

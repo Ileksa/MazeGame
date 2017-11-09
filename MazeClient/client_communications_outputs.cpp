@@ -83,3 +83,9 @@ void output_delimiter_game_info() {
 		wcout << L"┄";
 	wcout << L"┘" << endl;
 }
+
+void output_unexpected_error() {
+	system("cls");
+	wcout << L"An unexpected error occurred while working with the server. Application will be closed." << endl;
+	_getch();
+}

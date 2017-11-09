@@ -33,11 +33,11 @@ void game::set_level_size(int size)
 	level_size = size;
 }
 
-void game::add_node(node* _node) {
-	if (_node == nullptr || _node->get_id() != get_nodes_count())
-		throw "Incorrect numbering of node";
+int game::add_node(node* _node) {
+	if (_node == nullptr || _node->get_id() != get_nodes_count() || players.size() > 0)
+		return -1;
 	nodes.push_back(_node);
-
+	return 0;
 }
 //получить узел по индексу
 node* game::get_node(int index) {
@@ -336,8 +336,8 @@ void game::output_stat() {
 	SetConsoleTextAttribute(hStdOut, (WORD)(White));
 
 	COORD coord;
-	coord.X = 0; //9 - ширина одного узла
-	coord.Y = (get_nodes_count()/get_level_size())*5; // 4 - высота одного узла
+	coord.X = 0;
+	coord.Y = (get_nodes_count()/get_level_size())*5; // 5 - высота одного узла
 	SetConsoleCursorPosition(hStdOut, coord);
 
 	wcout << L"┌";
