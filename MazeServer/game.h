@@ -27,6 +27,9 @@ class game
 	map<player*, node*> players;
 	//vector<player*> players;
 	int max_players_count;
+	HANDLE mutex_players; //изменение коллекции игроков возможно только после захвата мьютекса
+	void lock_mutex_players();
+	void unlock_mutex_players();
 
 	//доступные цвета
 	vector<ConsoleColor> available_colors;

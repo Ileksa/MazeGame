@@ -8,8 +8,11 @@ game::game(int _level_size) {
 	set_available_colors();
 	name = (char*)malloc(sizeof(char)*(GAMENAME_LEN + 1));
 	memset(name, '\0', GAMENAME_LEN + 1);
+
+	mutex_players = CreateMutex(NULL, false, NULL);
 }
 game::~game() {
+	CloseHandle(mutex_players);
 	free(name);
 }
 
@@ -351,7 +354,11 @@ void game::output_stat() {
 		wcout << L"┄";
 	wcout << L"┐" << endl;
 
-	for (auto it = players.begin(); it != players.end(); ++it) {
+	lock_mutex_players();
+	map<player*, node*> pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it) {
 		wcout << L"┊";
 		wcout.width(5);
 		wcout << it->first->get_uid();
@@ -407,6 +414,7 @@ int game::add_player_to_node(player* pl, int node_num, int color)
 	if (players.size() >= max_players_count)
 		return -1;
 
+	lock_mutex_players();
 	players.insert_or_assign(pl, get_node(node_num));
 
 	if (pl->get_color() == -1)
@@ -422,11 +430,13 @@ int game::add_player_to_node(player* pl, int node_num, int color)
 			//available_colors.erase(color);
 		}
 	}
+	unlock_mutex_players();
 	return 0;
 }
 
 int game::remove_player(player* pl)
 {
+	lock_mutex_players();
 	closesocket(pl->get_socket_notifications());
 	pl->set_socket_notifications(-1);
 
@@ -434,13 +444,18 @@ int game::remove_player(player* pl)
 	available_colors.push_back((ConsoleColor)pl->get_color());
 	pl->set_color(-1);
 
+	unlock_mutex_players();
 	return 0;
 }
 
 int game::remove_player(int uid)
 {
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
 	player* pl = nullptr;
-	for (auto it = players.begin(); it != players.end(); ++it)
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		if (it->first->get_uid() == uid)
 			pl = it->first;
 
@@ -468,7 +483,11 @@ int game::set_player_node(player* pl, int new_node)
 
 int game::set_player_node(int uid, int new_node)
 {
-	for (auto it = players.begin(); it != players.end(); ++it)
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		if (it->first->get_uid() == uid)
 			return set_player_node(it->first, new_node);
 	return -1;
@@ -479,7 +498,12 @@ node* game::get_player_node(player* pl) {
 	return players[pl];
 }
 node* game::get_player_node(int uid) {
-	for (auto it = players.begin(); it != players.end(); ++it)
+
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		if (it->first->get_uid() == uid)
 			return it->second;
 	return nullptr;
@@ -492,7 +516,12 @@ int game::notify_players_move(int uid, int from, int to)
 
 	sprintf(message, "MOVE %d %d %d\r\n", uid, from, to);
 
-	for (auto it = players.begin(); it != players.end(); ++it)
+
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 
 	return 0;
@@ -502,9 +531,13 @@ int game::notify_players_quit(int uid, int from)
 {
 	char message[MSG_SIZE];
 	memset(message, '\0', MSG_SIZE);
-
 	sprintf(message, "QUIT %d %d\r\n", uid, from);
-	for (auto it = players.begin(); it != players.end(); ++it)
+
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 
 	return 0;
@@ -519,7 +552,12 @@ int game::notify_players_join(player* pl)
 	int uid = pl->get_uid();
 	node* n = players[pl];
 	sprintf(message, "JOIN %d %s %d %d %d\r\n", uid, pl->get_name(), pl->get_color(), n->get_id(), pl->get_points());
-	for (auto it = players.begin(); it != players.end(); ++it)
+
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		if (it->first->get_uid() != uid) //уведомление не придет самому игроку
 			send(it->first->get_socket_notifications(), message, strlen(message), 0);
 	return 0;
@@ -533,7 +571,12 @@ int game::notify_players_pnts(player* pl)
 	int uid = pl->get_uid();
 	node* n = players[pl];
 	sprintf(message, "PNTS %d %d\r\n", uid, pl->get_points());
-	for (auto it = players.begin(); it != players.end(); ++it)
+
+	lock_mutex_players();
+	auto pls = players;
+	unlock_mutex_players();
+
+	for (auto it = pls.begin(); it != pls.end(); ++it)
 		send(it->first->get_socket_notifications(), message, strlen(message), 0);
 	return 0;
 }
@@ -541,10 +584,13 @@ int game::notify_players_pnts(player* pl)
 
 vector<player*> game::get_players_at_node(int nid)
 {
+	lock_mutex_players();
 	vector<player*> pls;
 	for (auto it = players.begin(); it != players.end(); ++it)
 		if (it->second->get_id() == nid)
 			pls.push_back(it->first);
+
+	unlock_mutex_players();
 	return pls;
 }
 
@@ -557,4 +603,11 @@ int game::pop_available_color() {
 	auto back = available_colors.back();
 	available_colors.pop_back();
 	return back;
+}
+
+void game::lock_mutex_players() {
+	WaitForSingleObject(mutex_players, INFINITE);
+}
+void game::unlock_mutex_players() {
+	ReleaseMutex(mutex_players);
 }
