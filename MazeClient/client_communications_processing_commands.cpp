@@ -257,7 +257,7 @@ int process_list_command(SOCKET s) {
 		return -1;
 	}
 
-	if (strncmp(message, "ER", 2) == 0)	{
+	if (!is_ok_command(message, strlen(message))){
 		wcout << L"Can not get list of games. Error message: " << endl;
 		wcout << message;
 		_getch();

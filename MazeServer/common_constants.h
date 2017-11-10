@@ -1,12 +1,13 @@
 #pragma once
 #define PORT_COMMUNICATION 1006
 #define PORT_NOTIFICATION 1007
+#define TIMEOUT_SECS 300
 #define MSG_SIZE 1024
 #define IP_BUF_SIZE 20
 #define COMMAND_LEN 4 
 #define NICKNAME_LEN 20
 #define GAMENAME_LEN 20
-#define PLAYERS_COUNT 10000 //нулевой id не используется, от 1 до 9999 включительно
+#define PLAYERS_COUNT 6000 //нулевой id не используется, от 1 до 9999 включительно
 #define STANDARD_PLAYERS_COUNT_ON_MAP 6
 #define GAMES_COUNT 1000
 #define DEFAULT_GAME_COUNT 2

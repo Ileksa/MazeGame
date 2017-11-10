@@ -3,8 +3,9 @@
 //#include <iostream>
 #include <io.h>
 #include <cmath>
+#include <fstream>
 #include <fcntl.h>
-#include <string.h>
+#include <string>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "common_constants.h"
@@ -39,8 +40,6 @@ class lsm_server
 	
 	//метод, инициализирующий карты по умолчанию
 	void initialize_default_games();
-	game* initialize_game_simple();
-	game* initialize_game_tower();
 	//получить индекс игры в массиве игр, возвращает -1 в случае неудачи
 	int get_index(game* g);
 

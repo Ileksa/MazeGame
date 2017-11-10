@@ -14,11 +14,19 @@ lsm_server::lsm_server(int port)
 	tcpaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	int size = sizeof(tcpaddr);
 
+
+	DWORD timeout = TIMEOUT_SECS * 1000;
+	if (setsockopt(socket_listener, SOL_SOCKET, SO_RCVTIMEO, (char*)(&timeout), sizeof(timeout)) < 0) {
+		wcout << L"Can not apply timeout to socket listener" << endl;
+	}
+
 	bind(socket_listener, (SOCKADDR*)&tcpaddr, sizeof(tcpaddr));
 	if (WSAGetLastError() != 0) {
 		wcout << L"Binding error:" << WSAGetLastError() << endl;
 		throw "Binding error";
 	}
+
+	
 
 	listen(socket_listener, 5);
 
@@ -55,9 +63,15 @@ void lsm_server::accepting_clients()
 	while (true)
 	{
 		sockfd = accept(socket_listener, (SOCKADDR*)&tcpaddr, &size);
-		if (WSAGetLastError() != 0) {
-			wcout << L"Accepting error:" << WSAGetLastError() << endl;
-			continue;
+		if (sockfd == INVALID_SOCKET){
+			if (errno == EAGAIN) {
+				wcout << L"Timeout exit" << endl;
+				continue;
+			}
+			else {
+				wcout << L"Accepting error:" << WSAGetLastError() << endl;
+				return;
+			}
 		}
 
 		char ip[IP_BUF_SIZE];
@@ -270,89 +284,51 @@ int lsm_server::get_index(game* g)
 
 void lsm_server::initialize_default_games()
 {
-	game* g = initialize_game_simple();
-	games[1] = g;
-	games_count++;
+	ifstream maps("maps.txt");
 
-	g = initialize_game_tower();
-	games[2] = g;
-	games_count++;
-}
+	if (!maps.is_open()) {
+		wcout << L"File \"map.txt\" isn't found." << endl;
+		return;
+	}
 
-game* lsm_server::initialize_game_simple() {
-	game* g = new game(3);
+	//внешний цикл - проход по картам
+	while (!maps.eof()) {
+		if (games_count >= GAMES_COUNT)
+			return;
 
-	g->add_node(new node(0, -1, 3, -1, -1, -1, -1, -1, 4));
-	g->add_node(new node(1, -1, 4, -1, 2));
-	g->add_node(new node(2, -1, 5, 1));
-	g->add_node(new node(3, 0, 6));
-	g->add_node(new node(4, 1, -1, -1, -1, 0, -1, -1, 8));
-	g->add_node(new node(5, 2, 8));
-	g->add_node(new node(6, 3, 9, -1, 7));
-	g->add_node(new node(7, -1, -1, 6, 8, -1, -1, 9, 11));
-	g->add_node(new node(8, 5, 11, 7, -1, 4));
-	g->add_node(new node(9, 6, -1, -1, 10, -1, 7));
-	g->add_node(new node(10, -1, -1, 9, 11));
-	g->add_node(new node(11, 8, -1, 10, -1, 7));
+		int lvl_size, count;
+		char name[GAMENAME_LEN + 1];
+		memset(name, '\0', GAMENAME_LEN + 1);
+		
+		maps.getline(name, GAMENAME_LEN);
+		maps >> lvl_size;
+		maps >> count;
 
-	g->set_game_name("Simple");
-	return g;
-}
-game* lsm_server::initialize_game_tower() {
-	game* g = new game(8);
+		game* g = new game(lvl_size);
+		g->set_game_name(name);
 
-	g->add_node(new node(0, -1, 8, -1, 1));
-	g->add_node(new node(1, -1, 9, 0, 2));
-	g->add_node(new node(2, -1, -1, 1, 3, -1, -1, 9, 11));
-	g->add_node(new node(3, -1, -1, 2, 4));
-	g->add_node(new node(4, -1, -1, 3, 5));
-	g->add_node(new node(5, -1, -1, 4, 6, -1, -1, 12, 14));
-	g->add_node(new node(6, -1, -1, 5, 7));
-	g->add_node(new node(7, -1, 15, 6));
-	g->add_node(new node(8, 0, -1, -1, 9));
-	g->add_node(new node(9, 1, 17, 8, -1, -1, 2));
-	g->add_node(new node(10, -1, -1, -1, 11, -1, -1, 17));
-	g->add_node(new node(11, -1, -1, 10, 12, 2, -1, 18));
-	g->add_node(new node(12, -1, -1, 11, 13, -1, 5, -1, 21));
-	g->add_node(new node(13, -1, -1, 12, -1, -1, -1, -1, 22));
-	g->add_node(new node(14, -1, 22, -1, 15, 5, -1, -1));
-	g->add_node(new node(15, 7, 23, 14));
-	g->add_node(new node(16, -1, 24, -1, 17));
-	g->add_node(new node(17, 9, 25, 16, -1, -1, 10));
-	g->add_node(new node(18, -1, 26, -1, 19, -1, 11));
-	g->add_node(new node(19, -1, -1, 18, 20));
-	g->add_node(new node(20, -1, -1, 19, 21));
-	g->add_node(new node(21, -1, 29, 20, -1, 12));
-	g->add_node(new node(22, 14, 30, -1, -1, 13));
-	g->add_node(new node(23, 15, 31));
+		//внутренний цикл - получение узло
+		int num, up, down, left, right, upleft, upright, downleft, downright;
+		node* n = nullptr;
+		int counter = 0;
+		while (counter < count) {
+			maps >> num;
+			maps >> up;
+			maps >> down;
+			maps >> left;
+			maps >> right;
+			maps >> upleft;
+			maps >> upright;
+			maps >> downleft;
+			maps >> downright;
+			n = new node(num, up, down, left, right, upleft, upright, downleft, downright);
+			g->add_node(n);
+			counter++;
+		}
 
-	g->add_node(new node(24, 16, -1, -1, 25));
-	g->add_node(new node(25, 17, -1, 24, -1, -1, -1, -1, 34));
-	g->add_node(new node(26, 18, -1, -1, 27, -1, -1, -1, 35));
-	g->add_node(new node(27, -1, -1, 26, 28));
-	g->add_node(new node(28, -1, -1, 27, 29));
-	g->add_node(new node(29, 21, -1, 28, -1, -1, -1, 36));
-	g->add_node(new node(30, 22, -1, -1, 31, -1, -1, 37));
-	g->add_node(new node(31, 23, 39, 30, -1, -1, -1, 38));
-
-	g->add_node(new node(32, -1, 40, -1, 33));
-	g->add_node(new node(33, -1, -1, 32, -1, -1, -1, -1, 42));
-	g->add_node(new node(34, -1, -1, -1, 35, 25));
-	g->add_node(new node(35, -1, -1, 34, 36, 26, -1, 42, 44));
-	g->add_node(new node(36, -1, -1, 35, 37, -1, 29));
-	g->add_node(new node(37, -1, -1, 36, -1, -1, 30, 44));
-	g->add_node(new node(38, -1, 46, -1, -1, -1, 31));
-	g->add_node(new node(39, 31, 47));
-
-	g->add_node(new node(40, 32, -1, -1, 41));
-	g->add_node(new node(41, -1, -1, 40, 42));
-	g->add_node(new node(42, -1, -1, 41, 43, 33, 35));
-	g->add_node(new node(43, -1, -1, 42, 44));
-	g->add_node(new node(44, -1, -1, 43, 45, 35, 37));
-	g->add_node(new node(45, -1, -1, 44, 46));
-	g->add_node(new node(46, 38, -1, 45, 47));
-	g->add_node(new node(47, 39, -1, 46));
-
-	g->set_game_name("Tower");
-	return g;
+		games_count++;
+		games[games_count] = g;
+		wcout << L"Add game " << name << "." << endl;
+		maps.getline(name, GAMENAME_LEN);
+	}
 }
